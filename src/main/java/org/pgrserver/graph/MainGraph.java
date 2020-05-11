@@ -14,7 +14,6 @@ import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
-import org.jgrapht.graph.DefaultWeightedEdge;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.repository.GraphRepository;
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ import org.springframework.stereotype.Service;
 @Configurable
 public class MainGraph {
         
-    private static DefaultDirectedWeightedGraph<Integer, DefaultWeightedEdge> 
+    private static DefaultDirectedWeightedGraph<Integer, LabeledWeightedEdge> 
         defaultGraph;
     
     private final Logger logger = LoggerFactory.getLogger(MainGraph.class);
@@ -52,7 +51,7 @@ public class MainGraph {
         List<PgrServer> pgrData = graphRepository.getGraph();
         
         defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
-                DefaultWeightedEdge>(DefaultWeightedEdge.class);
+                LabeledWeightedEdge>(LabeledWeightedEdge.class);
 
         for(PgrServer p : pgrData) {
             defaultGraph.addVertex((int)p.getSource());
@@ -62,7 +61,7 @@ public class MainGraph {
         for(PgrServer p : pgrData) {      
             LabeledWeightedEdge lwe = new LabeledWeightedEdge();
             lwe.setEdgeId(p.getId());
-                        
+                       
             defaultGraph.addEdge(
                     (int)p.getSource(),(int)p.getTarget(),lwe);
             
@@ -83,8 +82,8 @@ public class MainGraph {
             }
         };
         
-        AStarShortestPath<Integer,DefaultWeightedEdge> astarShortestPath = 
-           new AStarShortestPath<Integer,DefaultWeightedEdge>(defaultGraph, 
+        AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
+           new AStarShortestPath<Integer,LabeledWeightedEdge>(defaultGraph, 
                    heuristic);
 
         List<Integer> retVal = new ArrayList<Integer>();
