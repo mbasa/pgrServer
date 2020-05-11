@@ -1,0 +1,1 @@
+insert into pgrs_auth(authcode) values('abc12345');
