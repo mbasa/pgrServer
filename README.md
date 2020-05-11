@@ -1,2 +1,2 @@
 # pgrServer
-Routing service that uses pgRouting topologies to a JGraphT graph for fast searches
+Routing service that uses pgRouting topologies and is loaded to a JGraphT graph for fast searches
