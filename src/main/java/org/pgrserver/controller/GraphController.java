@@ -59,7 +59,9 @@ public class GraphController {
     }
     
     @GetMapping("/astar")
-    public String getRouteAstar(@RequestParam int source,int target) {         
+    public String getRouteAstar(
+            @RequestParam(required = true) int source,
+            @RequestParam(required = true) int target ) {         
         List<Integer> retVal = mainGraph.astarSearch(source, target);
         
         if( retVal == null || retVal.isEmpty() ) {
@@ -72,6 +74,36 @@ public class GraphController {
     public String getRouteBellmanFord(@RequestParam int source,
             int target) {        
         List<Integer> retVal = mainGraph.bellmanFordSearch(source, target);        
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal);
+    }
+    
+    @GetMapping("/bfs")
+    public String getRouteBfs(@RequestParam int source,
+            int target) {        
+        List<Integer> retVal = mainGraph.bfsSearch(source, target);        
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal);
+    }
+    
+    @GetMapping("/johnson")
+    public String getRouteJohnson(@RequestParam int source,
+            int target) {        
+        List<Integer> retVal = mainGraph.johnsonSearch(source, target);        
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal);
+    }
+    
+    @GetMapping("/floydWarshall")
+    public String getRouteFloydWarshall(@RequestParam int source,
+            int target) {        
+        List<Integer> retVal = mainGraph.floydWarshallSearch(source, target);        
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }

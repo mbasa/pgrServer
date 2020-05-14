@@ -11,8 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
+import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
+import org.jgrapht.alg.shortestpath.FloydWarshallShortestPaths;
+import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.repository.GraphRepository;
@@ -133,15 +136,72 @@ public class MainGraph {
             ;
         }
         return retVal;        
-    }    
+    }
+    
+    public List<Integer> bfsSearch(int start,int end) {
+        List<Integer> retVal = new ArrayList<Integer>();
+        if( defaultGraph == null ) 
+            return  retVal;
+                
+        try {
+            List<Integer> list =  
+                    BFSShortestPath.findPathBetween(defaultGraph,
+                    start, end).getVertexList();            
+            retVal = convertVerticesToEdges(list);                        
+        }
+        catch(Exception e) {
+            ;
+        }
+        return retVal;        
+    }
+    
+    public List<Integer> floydWarshallSearch(int start,int end) {
+        List<Integer> retVal = new ArrayList<Integer>();
+        if( defaultGraph == null ) 
+            return  retVal;
+                
+        try {
+            FloydWarshallShortestPaths<Integer, LabeledWeightedEdge> fwSp = 
+                    new FloydWarshallShortestPaths<Integer, 
+                    LabeledWeightedEdge>(defaultGraph);
+            
+            List<Integer> list =  
+                    fwSp.getPath(start, end).getVertexList();            
+            retVal = convertVerticesToEdges(list);                        
+        }
+        catch(Exception e) {
+            ;
+        }
+        return retVal;        
+    }
+    
+    public List<Integer> johnsonSearch(int start,int end) {
+        List<Integer> retVal = new ArrayList<Integer>();
+        if( defaultGraph == null ) 
+            return  retVal;
+                
+        try {
+            JohnsonShortestPaths<Integer, LabeledWeightedEdge> jsp = 
+                    new JohnsonShortestPaths<Integer, 
+                    LabeledWeightedEdge>(defaultGraph);
+            
+            List<Integer> list =  
+                    jsp.getPath(start, end).getVertexList();            
+            retVal = convertVerticesToEdges(list);                        
+        }
+        catch(Exception e) {
+            ;
+        }
+        return retVal;        
+    }
     
     private List<Integer> convertVerticesToEdges(List<Integer> list) {
         List<Integer> retVal = new ArrayList<Integer>();
         
         for(int x=0;x<list.size()-1;x++ ) {
             LabeledWeightedEdge lw = 
-                    (LabeledWeightedEdge) defaultGraph.getEdge(
-                            list.get(x),list.get(x+1) );
+                    defaultGraph.getEdge(
+                    list.get(x),list.get(x+1) );
             retVal.add(lw.getEdgeId());
         }   
         return retVal;
