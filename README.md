@@ -42,7 +42,7 @@ Preparing the Topology
 id, source, target, cost, geom.
   
 ```sql
-create view pgrserver as select id,node_from as source,node_to as target,cost,wkb_geometry as geom from kanto ; 
+CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost,wkb_geometry AS geom FROM kanto ; 
 ```
  
 Building the Application
