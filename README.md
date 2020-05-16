@@ -62,3 +62,12 @@ Building the Application
 ```
     mvn spring-boot:run
 ```
+
+Reload the Graph
+---------------
+
+To reload the graph if the __cost__ has changed, send a POST request with the authcode parameter value. The authcode value can be set by updating the installed pgrs_auth table in the PostgreSQL database. 
+
+```shell
+curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphreload"
+```
