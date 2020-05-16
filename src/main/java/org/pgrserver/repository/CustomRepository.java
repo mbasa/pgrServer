@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.pgrserver.entity.PgrServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +31,18 @@ public class CustomRepository {
 
     @Autowired
     private EntityManager entityManager;
+    
+    public PgrServer findNearestNode(double lng,double lat) {
+        String sql = "select id,source,target,cost from pgrserver "
+                + "order by geom <-> st_setsrid(st_point("
+                + lng 
+                + ","
+                + lat 
+                + "),4326) limit 1;";
+        
+        return (PgrServer) entityManager.createNativeQuery(
+                sql,PgrServer.class).getSingleResult();
+    }
     
     public Object createJsonRouteResponse(List<Integer> list) {
         
