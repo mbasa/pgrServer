@@ -28,6 +28,23 @@ Requirements
 * Maven
 * Tomcat Application Server for deployment
 
+
+Preparing the Topology
+----------------------
+
+* Create a topology table. Refer to pgRouting's Documentations on the __pgr_createTopology__ function.
+
+
+* Ensure that there is an index on an unique id field and a spatial inddex on the geometry field of the topology table.
+
+
+* Create a View Table __pgrserver__ that will contain the following fields:
+id, source, target, cost, geom.
+  
+```sql
+create view pgrserver as select id,node_from as source,node_to as target,cost,wkb_geometry as geom from kanto ; 
+```
+ 
 Building the Application
 ------------------------
 
