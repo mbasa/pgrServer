@@ -18,5 +18,12 @@ As of this version, the following search algorithms are included as a service:
 * Johnson ( for sparse networks )
 * Floyd-Warshall ( for sparse networks )
 
+Requirements
+------------
+* PostgreSQL > 9.4
+* PostGIS
+* PgRouting (to create a topology)
+* Maven
+
 
 
