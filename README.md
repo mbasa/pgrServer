@@ -9,6 +9,8 @@ to load data into a JGraphT graph for very fast searches even with dense network
 
 The graph is created at startup when the topology is read from a PostgreSQL database. This graph though can be re-created at regular intervals by making a service request, for networks that have dynamic costs. 
  
+And similar to pgRouting, this application is not road navigation centric. This application can be used for a wide variety of networks: i.e. utilities (fiber optic lines), water systems, etc.
+ 
 As of this version, the following search algorithms are included as a service:
 
 * Dijkstra ( for dense networks )
@@ -24,6 +26,22 @@ Requirements
 * PostGIS
 * PgRouting (to create a topology)
 * Maven
+* Tomcat Application Server for deployment
+
+Building the Application
+------------------------
+
+* Edit __src/main/resources/application.properties__ and modify the PostgreSQL Database  URL and login parameters.
 
 
+* Create a WAR file that can be deployed to a Tomcat Server.
 
+```
+    mvn clean install -DskipTests
+```
+
+* Or run and test the application with the built-in Tomcat container.
+
+```
+    mvn spring-boot:run
+```
