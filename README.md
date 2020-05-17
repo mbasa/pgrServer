@@ -60,7 +60,17 @@ Building the Application
 * Or run and test the application with the built-in Tomcat container.
 
 ```
+    export SERVER_SERVLET_CONTEXT_PATH=/pgrServer
     mvn spring-boot:run
+```
+
+Display the List of APIs
+-----------------------
+
+The list of APIs can be viewed by displaying the Swagger page:
+
+```html
+http://localhost:8080/pgrServer/swagger-ui.html
 ```
 
 Reload the Graph
