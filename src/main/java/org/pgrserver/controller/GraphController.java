@@ -57,7 +57,7 @@ public class GraphController {
      * 
      * @param source
      * @param target
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/node/dijkstra",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -80,7 +80,7 @@ public class GraphController {
      * @param source_y
      * @param target_x
      * @param target_y
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/latlng/dijkstra", 
             produces = MediaType.APPLICATION_JSON_VALUE )
@@ -117,7 +117,7 @@ public class GraphController {
      * 
      * @param source
      * @param target
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/node/astar",produces = MediaType.APPLICATION_JSON_VALUE)
     public String getRouteAstar(
@@ -140,7 +140,7 @@ public class GraphController {
      * @param source_y
      * @param target_x
      * @param target_y
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/latlng/astar",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -179,7 +179,7 @@ public class GraphController {
      * 
      * @param source
      * @param target
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/node/bellmanford",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -202,7 +202,7 @@ public class GraphController {
      * @param source_y
      * @param target_x
      * @param target_y
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/latlng/bellmanford",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -239,7 +239,7 @@ public class GraphController {
      * 
      * @param source
      * @param target
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/node/bfs",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -262,7 +262,7 @@ public class GraphController {
      * @param source_y
      * @param target_x
      * @param target_y
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/latlng/bfs",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -299,7 +299,7 @@ public class GraphController {
      * 
      * @param source
      * @param target
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/node/johnson",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -322,7 +322,7 @@ public class GraphController {
      * @param source_y
      * @param target_x
      * @param target_y
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/latlng/johnson",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -359,7 +359,7 @@ public class GraphController {
      * 
      * @param source
      * @param target
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/node/floydWarshall",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -382,7 +382,7 @@ public class GraphController {
      * @param source_y
      * @param target_x
      * @param target_y
-     * @return
+     * @return GeoJson
      */
     @GetMapping(value="/latlng/floydWarshall",
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -413,6 +413,13 @@ public class GraphController {
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
 
+    /**
+     * 
+     * Reload the Graph
+     * 
+     * @param authcode
+     * @return String
+     */
     @PostMapping("/graphreload")
     String graphReload(@RequestParam(required=true) String authcode) {
 
