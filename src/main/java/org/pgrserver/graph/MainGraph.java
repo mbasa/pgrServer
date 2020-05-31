@@ -8,7 +8,10 @@
 package org.pgrserver.graph;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
@@ -17,6 +20,7 @@ import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.FloydWarshallShortestPaths;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
+import org.jgrapht.traverse.ClosestFirstIterator;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.repository.GraphRepository;
 import org.slf4j.Logger;
@@ -193,6 +197,29 @@ public class MainGraph {
             ;
         }
         return retVal;        
+    }
+    
+    public Set<Integer> drivingDistance(int source,double radius) {
+        final Set<Integer> visited = new HashSet<Integer>();
+        
+        if( defaultGraph == null ) {
+            return visited;
+        }
+
+        try {
+            ClosestFirstIterator<Integer, LabeledWeightedEdge> driveDist = 
+                    new ClosestFirstIterator<Integer, LabeledWeightedEdge>(
+                            defaultGraph, source, radius);
+            
+            while( driveDist.hasNext() ) {
+                visited.add(driveDist.next());
+            }
+        }
+        catch(Exception e) {
+            ;
+        }
+        
+        return visited;
     }
     
     private List<Integer> convertVerticesToEdges(List<Integer> list) {

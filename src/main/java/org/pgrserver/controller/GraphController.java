@@ -8,6 +8,7 @@
 package org.pgrserver.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.entity.PgrsAuth;
@@ -38,20 +39,76 @@ public class GraphController {
      */
     public GraphController() {
     }
-    
+
     @Autowired
     CustomRepository customRepo;
-    
+
     @Autowired
     MainGraph mainGraph;
-    
+
     @Autowired
     AuthRepository authRepository;
-    
+
     private final String noRouteMsg = "{\"type\" : \"Feature\", "
             + "\"properties\" : {\"feat_length\" : 0}, "
             + "\"geometry\" : {}}";
-    
+
+
+    /**
+     * 
+     * DrivingDistance
+     * 
+     * @param source_x
+     * @param source_y
+     * @param radius
+     * @return GeoJson
+     */
+    @GetMapping(value="/latlng/drivingDistance", 
+            produces = MediaType.APPLICATION_JSON_VALUE )
+    public String getDrivingDistanceXY(
+            @RequestParam @ApiParam(required=true,value="Source Longitude") double source_x,
+            @RequestParam @ApiParam(required=true,value="Source Latitude" ) double source_y,
+            @RequestParam @ApiParam(required=true,value="Radius") double radius ) {
+
+        int source = 0;
+        PgrServer pgrs;
+
+        pgrs = customRepo.findNearestNode(source_x, source_y);
+
+        if( pgrs != null ) {
+            source = pgrs.getSource();
+        }
+
+        Set<Integer> retVal = mainGraph.drivingDistance(source, radius);
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+
+        return((String)customRepo.createJsonDriveDistPoly(retVal));
+    }
+
+    /**
+     * 
+     * DrivingDistance
+     * 
+     * @param source
+     * @param radius
+     * @return GeoJson
+     */
+    @GetMapping(value="/node/drivingDistance",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getDrivingDistance(
+            @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
+            @RequestParam @ApiParam(required=true,value="Radius") double radius) { 
+
+        Set<Integer> retVal = mainGraph.drivingDistance(source, radius);
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+
+        return((String)customRepo.createJsonDriveDistPoly(retVal)); 
+    }    
+
     /**
      * 
      * Dijkstra with node parameters
@@ -66,14 +123,14 @@ public class GraphController {
     public String getRouteDijkstra(
             @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
             @RequestParam @ApiParam(required=true,value="Target Node ID") int target) { 
-        
+
         List<Integer> retVal = mainGraph.dijkstraSearch(source, target);
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * Dijkstra with Latitude,Longitude parameters
@@ -93,27 +150,27 @@ public class GraphController {
             @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
             @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y) 
     {
-        
+
         int source = 0,target = 0;
         PgrServer pgrs;
-        
+
         pgrs = customRepo.findNearestNode(source_x, source_y);
         if( pgrs != null ) {
             source = pgrs.getSource();
         }
-        
+
         pgrs = customRepo.findNearestNode(target_x, target_y);
         if( pgrs != null ) {
             target = pgrs.getTarget();
         }
-        
+
         List<Integer> retVal = mainGraph.dijkstraSearch(source, target);
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * A-Star with node parameters
@@ -128,13 +185,13 @@ public class GraphController {
             @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
             @RequestParam @ApiParam(required=true,value="Target Node ID") int target) {         
         List<Integer> retVal = mainGraph.astarSearch(source, target);
-        
+
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * A-Star with Latitude,Longitude parameters
@@ -154,28 +211,28 @@ public class GraphController {
             @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
             @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y) 
     {
-        
+
         int source = 0,target = 0;
         PgrServer pgrs;
-        
+
         pgrs = customRepo.findNearestNode(source_x, source_y);
         if( pgrs != null ) {
             source = pgrs.getSource();
         }
-        
+
         pgrs = customRepo.findNearestNode(target_x, target_y);
         if( pgrs != null ) {
             target = pgrs.getTarget();
         }
-        
+
         List<Integer> retVal = mainGraph.astarSearch(source, target);
-        
+
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * Bellman-Ford with node parameters
@@ -198,7 +255,7 @@ public class GraphController {
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * Bellman-Ford with Latitude,Longitude parameters
@@ -220,24 +277,24 @@ public class GraphController {
     {        
         int source = 0,target = 0;
         PgrServer pgrs;
-        
+
         pgrs = customRepo.findNearestNode(source_x, source_y);
         if( pgrs != null ) {
             source = pgrs.getSource();
         }
-        
+
         pgrs = customRepo.findNearestNode(target_x, target_y);
         if( pgrs != null ) {
             target = pgrs.getTarget();
         }
-                
+
         List<Integer> retVal = mainGraph.bellmanFordSearch(source, target);        
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * BFS with node parameters
@@ -259,7 +316,7 @@ public class GraphController {
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * BFS with Latitude,Longitude parameters
@@ -279,27 +336,27 @@ public class GraphController {
             @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
             @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y) 
     {
-        
+
         int source = 0,target = 0;
         PgrServer pgrs;
-        
+
         pgrs = customRepo.findNearestNode(source_x, source_y);
         if( pgrs != null ) {
             source = pgrs.getSource();
         }
-        
+
         pgrs = customRepo.findNearestNode(target_x, target_y);
         if( pgrs != null ) {
             target = pgrs.getTarget();
         }
-                
+
         List<Integer> retVal = mainGraph.bfsSearch(source, target);        
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal);
     }
-    
+
     /**
      * 
      * Johnson with node parameters
@@ -343,17 +400,17 @@ public class GraphController {
     {        
         int source = 0,target = 0;
         PgrServer pgrs;
-        
+
         pgrs = customRepo.findNearestNode(source_x, source_y);
         if( pgrs != null ) {
             source = pgrs.getSource();
         }
-        
+
         pgrs = customRepo.findNearestNode(target_x, target_y);
         if( pgrs != null ) {
             target = pgrs.getTarget();
         }
-                
+
         List<Integer> retVal = mainGraph.johnsonSearch(source, target);        
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
@@ -402,22 +459,22 @@ public class GraphController {
             @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
             @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y) 
     {
-        
+
         int source = 0,target = 0;
         PgrServer pgrs;
-        
+
         pgrs = customRepo.findNearestNode(source_x, source_y);
         if( pgrs != null ) {
             source = pgrs.getSource();
         }
-        
+
         pgrs = customRepo.findNearestNode(target_x, target_y);
         if( pgrs != null ) {
             target = pgrs.getTarget();
         }        
-           
+
         List<Integer> retVal = mainGraph.floydWarshallSearch(source, target);        
-        
+
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
@@ -436,7 +493,7 @@ public class GraphController {
 
         if( authcode != null && !authcode.isEmpty()) {
             List<PgrsAuth> p = authRepository.findByAuthcode(authcode);
-            
+
             if( p != null && !p.isEmpty()) {
                 mainGraph.createDirectedGraph();                
                 return "graph has been reloded";

@@ -8,6 +8,7 @@
 package org.pgrserver.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
@@ -44,6 +45,25 @@ public class CustomRepository {
                 sql,PgrServer.class).getSingleResult();
     }
     
+    public Object createJsonDriveDistPoly(Set<Integer> list) {
+        String listStr = list.toString();
+        listStr = listStr.replace("[", "(");
+        listStr = listStr.replace("]", ")");
+        
+        String sql = "select CAST(json_build_object('type','Feature',"
+                + "'properties',json_build_object('feat_area',"
+                + "st_area(t.geom,true)),"
+                + "'geometry',CAST(st_asgeojson(t.geom) as json)"
+                + ") as TEXT) as st_json "
+                + "from (select st_concavehull(st_collect("
+                + "st_startpoint(geom)),0.8) as geom from pgrserver "
+                + "where source in " 
+                + listStr
+                + ") t;";
+        
+        return entityManager.createNativeQuery( sql )
+                .getSingleResult();
+    }
     public Object createJsonRouteResponse(List<Integer> list) {
         
         String listStr = list.toString();

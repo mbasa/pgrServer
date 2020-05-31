@@ -2,6 +2,8 @@
 
 ![Alt text](Route.png?raw=true)
 
+![Alt text](DrivingDist.png?raw=true)
+
 Introduction
 ------------
 pgrServer is a routing service that is able to use pgRouting topologies 
@@ -15,10 +17,25 @@ As of this version, the following search algorithms are included as a service:
 
 * Dijkstra ( for dense networks )
 * A-Star ( for dense networks )
+* ClosetFirstIterator ( for Driving Distance Isochrone creation )
 * Bellman-Ford ( for sparse networks )
 * BFS ( for sparse networks )
 * Johnson ( for sparse networks )
 * Floyd-Warshall ( for sparse networks )
+
+When to use pgrServer
+---------------------
+
+* When a web service is required to serve route data. pgrServer can be used to easily serve data to a variety of web or mobile application clients. 
+
+
+* When the network is very dense and pgRouting struggles with long distance searches. pgrServer stores the entire graph into memory at start and can do route searches within the entire graph. 
+
+
+* When performance is paramount. pgrServer can return routes within ~50 kilometer searches in milliseconds even in very dense networks.   
+
+
+* When the cost (weight) of the graph is not dynamic. pgrServer can be used when the cost does not have to be computed at each request, since pgrServer only reads the cost whenever the graph is loaded. pgrServer can be forced to re-read the graph for routes that have semi-dynamic costs. 
 
 Requirements
 ------------
@@ -35,10 +52,10 @@ Preparing the Topology
 * Create a topology table. Refer to pgRouting's Documentations on the __pgr_createTopology__ function.
 
 
-* Ensure that there is an index on an unique id field and a spatial inddex on the geometry field of the topology table.
+* Ensure that there is an index on an __unique id__ field, an index on the __source__ field, an index on the __target__ field, and a spatial index on the __geometry__ field of the topology table.
 
 
-* Create a View Table __pgrserver__ that will contain the following fields:
+* Create a View Table __pgrserver__ based on the topology table that will contain the following fields:
 id, source, target, cost, geom.
   
 ```sql
@@ -81,3 +98,24 @@ To reload the graph if the __cost__ has changed, send a POST request with the au
 ```shell
 curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphreload"
 ```
+
+Viewing the Data
+----------------
+
+pgrServer returns a GeoJSON object for the created route or driving distance polygon, hence any application that supports GeoJSON can be used to view the results. 
+
+To quickly view the results, GeoJSONLint web service can be used:
+
+```html
+http://www.geojsonlint.com
+```
+
+It is also possible to use the result as a Vector Layer in __QGIS__ by doing:
+
+```
+Layer -> Add Layer -> Add Vector Layer
+```
+
+and set the protocol to `HTTP` and add the URL request of pgrServer. 
+
+
