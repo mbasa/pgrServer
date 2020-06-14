@@ -12,8 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
+import org.jgrapht.alg.shortestpath.AllDirectedPaths;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
@@ -79,6 +81,20 @@ public class MainGraph {
         logger.info("Data received: "+pgrData.size());
     }
     
+    public List<List<Integer>> allDirectedPaths(int start,int end,
+            int maxEdges) {
+        List<List<Integer>> arrList = new ArrayList<>();
+
+        AllDirectedPaths<Integer, LabeledWeightedEdge> adp = 
+                new AllDirectedPaths<Integer,LabeledWeightedEdge>(defaultGraph);                
+
+        for( GraphPath<Integer,LabeledWeightedEdge> p : 
+            adp.getAllPaths(start, end, true, maxEdges) ) {           
+            List<Integer> list = p.getVertexList();
+            arrList.add(convertVerticesToEdges(list));
+        }     
+        return arrList;
+    }
     
     public List<Integer> astarSearch(int start,int end) {
         AStarAdmissibleHeuristic<Integer> heuristic = 

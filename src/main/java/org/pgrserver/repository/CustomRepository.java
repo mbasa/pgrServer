@@ -64,15 +64,18 @@ public class CustomRepository {
         return entityManager.createNativeQuery( sql )
                 .getSingleResult();
     }
-    public Object createJsonRouteResponse(List<Integer> list) {
+    
+    public Object createJsonRouteResponse(List<Integer> list,int gid) {
         
         String listStr = list.toString();
         listStr = listStr.replace("[", "(");
         listStr = listStr.replace("]", ")");
         
         String sql = "select CAST(json_build_object('type','Feature',"
+                + "'id',"+ gid + ","
                 + "'properties',json_build_object('feat_length',"
-                + "st_length(t.geom,true)),"
+                + "st_length(t.geom,true),"
+                + "'fid',"+gid+"),"
                 + "'geometry',CAST(st_asgeojson(t.geom) as json)"
                 + ") as TEXT) as st_json "
                 + "from (select st_union(geom) as geom from pgrserver"
@@ -83,4 +86,23 @@ public class CustomRepository {
         return entityManager.createNativeQuery( sql )
                 .getSingleResult();
     }    
+    
+    public String createJsonCollectionResponse(List<List<Integer>> list) {
+        
+        StringBuffer retVal = new StringBuffer();
+        retVal.append("{\"type\":\"FeatureCollection\",");
+        retVal.append("\"features\":[");
+        
+        if( !list.isEmpty() ) {
+            for(int i=0;i<list.size()-1;i++) {
+                retVal.append((String)createJsonRouteResponse(list.get(i),i+1));
+                retVal.append(",");
+            }
+            retVal.append((String)createJsonRouteResponse(list.get(
+                list.size()-1),list.size()));
+        }
+        retVal.append("]}");
+        
+        return retVal.toString();        
+    }
 }

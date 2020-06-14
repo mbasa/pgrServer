@@ -111,6 +111,65 @@ public class GraphController {
 
     /**
      * 
+     * Finds All Directed Paths between 2 points
+     * 
+     * @param source
+     * @param target
+     * @param maxEdges
+     * @return geoJson
+     */
+    @GetMapping(value="/node/allDirectedPaths",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getAllDirected(
+            @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
+            @RequestParam @ApiParam(required=true,value="Target Node ID") int target,
+            @RequestParam @ApiParam(required=true,value="Maximum number of edges to allow in a path") int maxEdges) { 
+        
+        return(customRepo.createJsonCollectionResponse(
+                mainGraph.allDirectedPaths(source, target,maxEdges) 
+        ));
+    }
+
+    /**
+     * 
+     * Finds All Directed Paths between 2 points
+     * 
+     * @param source_x
+     * @param source_y
+     * @param target_x
+     * @param target_y
+     * @param maxEdges
+     * @return geoJson
+     */
+    @GetMapping(value="/latlng/allDirectedPaths",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getAllDirectedXY(
+            @RequestParam @ApiParam(required=true,value="Source Longitude") double source_x,
+            @RequestParam @ApiParam(required=true,value="Source Latitude" ) double source_y,
+            @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
+            @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y,
+            @RequestParam @ApiParam(required=true,value="Maximum number of edges to allow in a path") int maxEdges) { 
+        
+        int source = 0,target = 0;
+        PgrServer pgrs;
+
+        pgrs = customRepo.findNearestNode(source_x, source_y);
+        if( pgrs != null ) {
+            source = pgrs.getSource();
+        }
+
+        pgrs = customRepo.findNearestNode(target_x, target_y);
+        if( pgrs != null ) {
+            target = pgrs.getTarget();
+        }
+
+        return(customRepo.createJsonCollectionResponse(
+                mainGraph.allDirectedPaths(source, target,maxEdges) 
+        ));
+    }
+    
+    /**
+     * 
      * Dijkstra with node parameters
      * (for dense networks)
      * 
@@ -128,7 +187,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -168,7 +227,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -189,7 +248,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -230,7 +289,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -253,7 +312,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -292,7 +351,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -314,7 +373,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -354,7 +413,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -376,7 +435,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -415,7 +474,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -437,7 +496,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
@@ -478,7 +537,7 @@ public class GraphController {
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
-        return (String)customRepo.createJsonRouteResponse(retVal);
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
     /**
