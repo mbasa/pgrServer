@@ -1,8 +1,8 @@
 # pgrServer
 
-![Alt text](Route.png?raw=true)
+![Alt text](pics/Route.png?raw=true)
 
-![Alt text](DrivingDist.png?raw=true)
+![Alt text](pics/DrivingDist.png?raw=true)
 
 Introduction
 ------------
@@ -90,6 +90,8 @@ The list of APIs can be viewed by displaying the Swagger page:
 ```html
 http://localhost:8080/pgrServer/swagger-ui.html
 ```
+
+![Alt text](pics/Swagger.png?raw=true)
 
 Reload the Graph
 ---------------
