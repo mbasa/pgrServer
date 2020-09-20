@@ -17,7 +17,7 @@ As of this version, the following search algorithms are included as a service:
 
 * Dijkstra ( for dense networks )
 * A-Star ( for dense networks )
-* ClosetFirstIterator ( for Driving Distance Isochrone creation )
+* ClosestFirstIterator ( for Driving Distance Isochrone creation )
 * All Directed Paths ( for sparse networks or short distance search)
 * Bellman-Ford ( for sparse networks )
 * BFS ( for sparse networks )
@@ -78,7 +78,6 @@ Building the Application
 * Or run and test the application with the built-in Tomcat container.
 
 ```
-    export SERVER_SERVLET_CONTEXT_PATH=/pgrServer
     mvn spring-boot:run
 ```
 
