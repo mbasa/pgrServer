@@ -55,6 +55,13 @@ public class GraphController {
             + "\"geometry\" : {}}";
 
 
+    /**
+     * 
+     * TSP
+     * 
+     * @param inPoints
+     * @return GeoJson
+     */
     @PostMapping(value="/latlng/tsp", 
             consumes = "application/json",
             produces = MediaType.APPLICATION_JSON_VALUE )
