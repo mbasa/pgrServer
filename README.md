@@ -1,8 +1,13 @@
 # pgrServer
 
+   Dijkstra Shortest Path Search on a Dense Network
 ![Alt text](pics/Route.png?raw=true)
 
+   Driving Distance Isochrone
 ![Alt text](pics/DrivingDist.png?raw=true)
+
+   Traveling Salesperson Problem
+![Alt text](pics/TSP.png?raw=true)
 
 Introduction
 ------------
@@ -18,6 +23,7 @@ As of this version, the following search algorithms are included as a service:
 * Dijkstra ( for dense networks )
 * A-Star ( for dense networks )
 * ClosestFirstIterator ( for Driving Distance Isochrone creation )
+* NearestInsertionHeuristicTSP ( for Traveling Salesperson Problem )
 * All Directed Paths ( for sparse networks or short distance search)
 * Bellman-Ford ( for sparse networks )
 * BFS ( for sparse networks )
