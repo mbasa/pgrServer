@@ -21,10 +21,14 @@ import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.FloydWarshallShortestPaths;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
+import org.jgrapht.alg.tour.NearestNeighborHeuristicTSP;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
+import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
 import org.jgrapht.traverse.ClosestFirstIterator;
 import org.pgrserver.entity.PgrServer;
+import org.pgrserver.repository.CustomRepository;
 import org.pgrserver.repository.GraphRepository;
+import org.pgrserver.util.DistanceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +51,10 @@ public class MainGraph {
     @Autowired
     GraphRepository graphRepository;
 
+    @Autowired
+    CustomRepository custRepository;
+    
+
     /**
      * コンストラクタ
      *
@@ -54,6 +62,7 @@ public class MainGraph {
     public MainGraph() {
     }
     
+   
     public void createDirectedGraph() {
         logger.info("Creating Graph");
         
@@ -80,7 +89,86 @@ public class MainGraph {
         } 
         logger.info("Data received: "+pgrData.size());
     }
+
     
+    public List<List<Integer>> tsp(List<List<Double>> inPoints) {        
+        List<List<Integer>> retVal = new ArrayList<List<Integer>>();
+        
+        DefaultUndirectedWeightedGraph<Integer, LabeledWeightedEdge> tspGraph = 
+                new DefaultUndirectedWeightedGraph<Integer, 
+                LabeledWeightedEdge>(LabeledWeightedEdge.class);
+        
+        List<PgrServer> pgrServer = new ArrayList<PgrServer>();
+        
+        /**
+         * Populating the TSP Graph
+         */
+        int i = 0;
+        for(List<Double> pts : inPoints ) {
+            tspGraph.addVertex(i);
+            i++;
+            
+            pgrServer.add( custRepository.findNearestNode(
+                    pts.get(0), pts.get(1)) );            
+        }
+        
+        i = 0;
+        double fromLat,fromLng,toLat,toLng;
+        
+        for(int j=0;j<inPoints.size();j++) {
+            List<Double> pts = inPoints.get(j);
+            fromLng = pts.get(0);
+            fromLat = pts.get(1);
+            
+            for(int k=0;k<inPoints.size();k++) {
+                if( k == j )
+                    continue;
+                
+                List<Double> pts2 = inPoints.get(k);
+                toLng = pts2.get(0);
+                toLat = pts2.get(1);
+                
+                LabeledWeightedEdge lwe = new LabeledWeightedEdge();
+                lwe.setEdgeId(i);
+                i++;
+                
+                double dist = DistanceUtil.euclidean(
+                        fromLat, fromLng, toLat, toLng);
+                
+                tspGraph.addEdge(j, k, lwe);
+                tspGraph.setEdgeWeight(j, k, dist);
+            }
+        }
+                     
+        /**
+         * Running the TSP search. First point will be visited first.
+         */
+        NearestNeighborHeuristicTSP<Integer, LabeledWeightedEdge> nnhTsp = 
+                new NearestNeighborHeuristicTSP<Integer, LabeledWeightedEdge>(
+                        new Integer(0));
+        
+        GraphPath<Integer,LabeledWeightedEdge> path = nnhTsp.getTour(tspGraph);
+        List<Integer> vertexList = path.getVertexList();
+        
+        for(i=0; i<vertexList.size()-2; i++) {
+            int v1 = vertexList.get(i);
+            int v2 = vertexList.get(i+1);
+            int source = pgrServer.get(v1).getSource();
+            int target = pgrServer.get(v2).getTarget();
+            
+            List<Integer> dPath = dijkstraSearch(source, target);
+            
+            if( dPath != null && !dPath.isEmpty()) {
+                retVal.add( dPath  );
+            }
+            else {
+                logger.error("*** PATH Not Found ("+source+","+target+") ***");
+            }
+        }
+        
+        return retVal;
+    }
+ 
     public List<List<Integer>> allDirectedPaths(int start,int end,
             int maxEdges) {
         List<List<Integer>> arrList = new ArrayList<>();

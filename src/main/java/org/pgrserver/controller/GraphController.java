@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +55,29 @@ public class GraphController {
             + "\"geometry\" : {}}";
 
 
+    @PostMapping(value="/latlng/tsp", 
+            consumes = "application/json",
+            produces = MediaType.APPLICATION_JSON_VALUE )
+    public String getTsp(
+            @RequestBody 
+            @ApiParam(required=true,value="Input Points in JSON Format "
+                    + "ex: [ [x1 ,y1], [x2, y2], [x3, y3] ]")
+            List<List<Double>> inPoints ) {       
+        
+        if( inPoints.size() < 2 ) {
+            return this.noRouteMsg;
+        }
+        
+        List<List<Integer>> retVal = mainGraph.tsp( inPoints ) ; 
+        
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        
+        return ((String) customRepo.createJsonCollectionResponse(
+                retVal ) );
+    }
+            
     /**
      * 
      * DrivingDistance
