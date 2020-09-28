@@ -23,7 +23,7 @@ As of this version, the following search algorithms are included as a service:
 * Dijkstra ( for dense networks )
 * A-Star ( for dense networks )
 * ClosestFirstIterator ( for Driving Distance Isochrone creation )
-* NearestInsertionHeuristicTSP ( for Traveling Salesperson Problem )
+* NearestNeighborHeuristicTSP ( for Traveling Salesperson Problem )
 * All Directed Paths ( for sparse networks or short distance search)
 * Bellman-Ford ( for sparse networks )
 * BFS ( for sparse networks )
