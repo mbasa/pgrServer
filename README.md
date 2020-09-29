@@ -1,6 +1,6 @@
 # pgrServer
 
-   Dijkstra Shortest Path Search on a Dense Network
+   Dijkstra Shortest Path Search
 ![Alt text](pics/Route.png?raw=true)
 
    Driving Distance Isochrone
@@ -8,6 +8,9 @@
 
    Traveling Salesperson Problem
 ![Alt text](pics/TSP.png?raw=true)
+
+   All Directed Path
+![Alt text](pics/AllDirectedPath.png?raw=true)
 
 Introduction
 ------------
