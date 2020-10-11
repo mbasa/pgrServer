@@ -198,7 +198,69 @@ public class GraphController {
                 mainGraph.allDirectedPaths(source, target,maxEdges) 
         ));
     }
-    
+
+    /**
+     * 
+     * ContractionHierarchyBidirectionalDijkstra with node parameters
+     * (for dense networks)
+     * 
+     * @param source
+     * @param target
+     * @return GeoJson
+     */
+    @GetMapping(value="/node/chbDijkstra",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getRouteChbDijkstra(
+            @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
+            @RequestParam @ApiParam(required=true,value="Target Node ID") int target) { 
+
+        List<Integer> retVal = mainGraph.chbDijkstraSearch(source, target);
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
+    }
+
+    /**
+     * 
+     * Dijkstra with Latitude,Longitude parameters
+     * (for dense networks)
+     * 
+     * @param source_x
+     * @param source_y
+     * @param target_x
+     * @param target_y
+     * @return GeoJson
+     */
+    @GetMapping(value="/latlng/chbDijkstra", 
+            produces = MediaType.APPLICATION_JSON_VALUE )
+    public String getRouteXYChbDijkstra(
+            @RequestParam @ApiParam(required=true,value="Source Longitude") double source_x,
+            @RequestParam @ApiParam(required=true,value="Source Latitude" ) double source_y,
+            @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
+            @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y) 
+    {
+
+        int source = 0,target = 0;
+        PgrServer pgrs;
+
+        pgrs = customRepo.findNearestNode(source_x, source_y);
+        if( pgrs != null ) {
+            source = pgrs.getSource();
+        }
+
+        pgrs = customRepo.findNearestNode(target_x, target_y);
+        if( pgrs != null ) {
+            target = pgrs.getTarget();
+        }
+
+        List<Integer> retVal = mainGraph.chbDijkstraSearch(source, target);
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
+    }
+
     /**
      * 
      * Dijkstra with node parameters

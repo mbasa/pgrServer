@@ -25,6 +25,7 @@ As of this version, the following search algorithms are included as a service:
 
 * Dijkstra ( for dense networks )
 * A-Star ( for dense networks )
+* ContractionHierarchyBidirectionalDijkstra ( for dense networks * )
 * ClosestFirstIterator ( for Driving Distance Isochrone creation )
 * NearestNeighborHeuristicTSP ( for Traveling Salesperson Problem )
 * All Directed Paths ( for sparse networks or short distance search)
@@ -32,6 +33,10 @@ As of this version, the following search algorithms are included as a service:
 * BFS ( for sparse networks )
 * Johnson ( for sparse networks )
 * Floyd-Warshall ( for sparse networks )
+
+(*Note: Initial call to a ContractionHierarchyBidirectionalDijkstra request will 
+take time since a contraction graph will be created first. Subsequent calls will
+result in a much faster response.)
 
 When to use pgrServer
 ---------------------

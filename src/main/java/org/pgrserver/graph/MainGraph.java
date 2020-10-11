@@ -18,6 +18,7 @@ import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.AllDirectedPaths;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
+import org.jgrapht.alg.shortestpath.ContractionHierarchyBidirectionalDijkstra;
 import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.FloydWarshallShortestPaths;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
@@ -46,6 +47,9 @@ public class MainGraph {
     private static DefaultDirectedWeightedGraph<Integer, LabeledWeightedEdge> 
         defaultGraph;
     
+    private static ContractionHierarchyBidirectionalDijkstra<Integer, 
+        LabeledWeightedEdge> chbd = null;
+    
     private final Logger logger = LoggerFactory.getLogger(MainGraph.class);
     
     @Autowired
@@ -67,6 +71,8 @@ public class MainGraph {
         logger.info("Creating Graph");
         
         List<PgrServer> pgrData = graphRepository.getGraph();
+        
+        chbd = null;
         
         defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
                 LabeledWeightedEdge>(LabeledWeightedEdge.class);
@@ -228,7 +234,30 @@ public class MainGraph {
         }
         return retVal;        
     }
-
+        
+    public List<Integer> chbDijkstraSearch(int start,int end) {
+        List<Integer> retVal = new ArrayList<Integer>();
+        
+        if( defaultGraph == null ) 
+            return  retVal;
+                
+        try {
+            if( chbd == null ) {
+                chbd = new ContractionHierarchyBidirectionalDijkstra<Integer, 
+                    LabeledWeightedEdge>(defaultGraph);
+            }
+            
+            List<Integer> list =  
+                    chbd.getPath(start, end).getVertexList();
+            
+            retVal = convertVerticesToEdges(list);                        
+        }
+        catch(Exception e) {
+            ;
+        }
+        return retVal;        
+    }
+    
     public List<Integer> dijkstraSearch(int start,int end) {
         List<Integer> retVal = new ArrayList<Integer>();
         if( defaultGraph == null ) 
