@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.pgrserver.bean.VrpParamBean;
 import org.pgrserver.vrp.MainVrp;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,21 @@ public class VrpController {
     public VrpController() {
     }
 
+    @Autowired
+    MainVrp mainVrp;
+
+
+    @PostMapping(value="/generateRoute",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object generateRoute(
+            @RequestBody @ApiParam(required=true,value="Generate a Trip Route")
+                VrpParamBean vrpParamBean) { 
+                        
+        return mainVrp.createRoute(vrpParamBean);
+
+    }
+    
     /**
      * 
      * Generate a Trip Plan
@@ -54,7 +70,7 @@ public class VrpController {
         Map<String,Object> retVal;
         
         try {
-            retVal = new MainVrp().createPlan(vrpParamBean);
+            retVal = mainVrp.createPlan(vrpParamBean);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<Object>("{\"status\":\"error with parameter data\"}",
