@@ -18,7 +18,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.pgrserver.bean.VrpParamBean;
+import org.pgrserver.bean.VrpServiceParamBean;
+import org.pgrserver.bean.VrpShipmentBean;
+import org.pgrserver.bean.VrpShipmentParamBean;
 import org.pgrserver.bean.VrpServiceBean;
 import org.pgrserver.bean.VrpVehicleBean;
 import org.pgrserver.entity.PgrServer;
@@ -32,7 +34,7 @@ import com.graphhopper.jsprit.core.algorithm.box.Jsprit;
 import com.graphhopper.jsprit.core.problem.Location;
 import com.graphhopper.jsprit.core.problem.VehicleRoutingProblem;
 import com.graphhopper.jsprit.core.problem.job.Job;
-
+import com.graphhopper.jsprit.core.problem.job.Shipment;
 import com.graphhopper.jsprit.core.problem.solution.VehicleRoutingProblemSolution;
 import com.graphhopper.jsprit.core.problem.solution.route.VehicleRoute;
 import com.graphhopper.jsprit.core.problem.solution.route.activity.End;
@@ -72,9 +74,46 @@ public class MainVrp {
     @Autowired
     MainGraph mainGraph;
     
-    public String createRoute( VrpParamBean vrpParamBean ) {
+    public String createServiceRoute(VrpServiceParamBean vrpServiceParamBean) {
+        VehicleRoutingProblemSolution solution = 
+                planSolver( vrpServiceParamBean.getVehicles(),
+                        vrpServiceParamBean,null );
+        
+        return createRoute( solution );
+    }
+    
+    public Map<String,Object> createServicePlan(
+            VrpServiceParamBean vrpServiceParamBean) {
+        
+        VehicleRoutingProblemSolution solution = 
+                planSolver( vrpServiceParamBean.getVehicles(),
+                        vrpServiceParamBean,null );
+        
+        return createPlan( solution );
+    }
+    
+    public String createShipmentRoute(
+            VrpShipmentParamBean vrpShipmentParamBean) {
+        
+        VehicleRoutingProblemSolution solution = 
+                planSolver( vrpShipmentParamBean.getVehicles(),
+                        null,vrpShipmentParamBean );
+        
+        return createRoute( solution );
+    }
+    
+    public Map<String,Object> createShipmentPlan(
+            VrpShipmentParamBean vrpShipmentParamBean) {
+        
+        VehicleRoutingProblemSolution solution = 
+                planSolver( vrpShipmentParamBean.getVehicles(),
+                        null,vrpShipmentParamBean );
+        
+        return createPlan( solution );
+    }
+    
+    public String createRoute( VehicleRoutingProblemSolution solution  ) {
         StringBuffer retVal = new StringBuffer();
-        VehicleRoutingProblemSolution solution = planSolver( vrpParamBean );
         
         retVal.append("{\"type\":\"FeatureCollection\",");
         retVal.append("\"features\":[");
@@ -93,8 +132,10 @@ public class MainVrp {
                 
                 attrib.put("route", routeCnt);
                 attrib.put("vehicle", route.getVehicle().getId());
+                attrib.put("activity", start.getName());
+                attrib.put("job", "-");
                 attrib.put("capacity", start.getSize().get(0)); 
-                attrib.put("job", start.getName());
+                
                 attribs.add(attrib);
                                 
                 pgrServer.add( custRepository.findNearestNode(
@@ -107,16 +148,17 @@ public class MainVrp {
                     
                     attrib.put("route", routeCnt);
                     attrib.put("vehicle", route.getVehicle().getId());
-                    attrib.put("capacity", ta.getSize().get(0)); 
+                    attrib.put("activity", ta.getName() );
                     
                     if( ta instanceof TourActivity.JobActivity ) {
                         Job job =  ((TourActivity.JobActivity) ta).getJob();
                         attrib.put("job", job.getId() );
                     }
                     else {
-                        attrib.put("job", ta.getName() );
+                        attrib.put("job", "-" );
                     }
-                                        
+                    
+                    attrib.put("capacity", ta.getSize().get(0));                    
                     attribs.add(attrib);
                     
                     pgrServer.add( custRepository.findNearestNode(
@@ -130,8 +172,10 @@ public class MainVrp {
                 
                 attrib.put("route", routeCnt);
                 attrib.put("vehicle", route.getVehicle().getId());
+                attrib.put("activity", end.getName());   
+                attrib.put("job", "-");   
                 attrib.put("capacity", end.getSize().get(0)); 
-                attrib.put("job", end.getName());                    
+                                 
                 attribs.add(attrib);
                 
                 pgrServer.add( custRepository.findNearestNode(
@@ -160,15 +204,14 @@ public class MainVrp {
         return retVal.toString();
     }
     
-    public Map<String,Object> createPlan( VrpParamBean vrpParamBean ) {
-        VehicleRoutingProblemSolution solution = planSolver( vrpParamBean );
+    public Map<String,Object> createPlan( 
+            VehicleRoutingProblemSolution solution  ) {
                 
         Map<String,Object> retVal = new LinkedHashMap<String, Object>();
         retVal.put("status", "ok");
         
         Map<String,Object> solutionMap = new LinkedHashMap<String, Object>();
         solutionMap.put("costs", solution.getCost());
-        solutionMap.put("noVehicles", vrpParamBean.getVehicles().size());
         solutionMap.put("noRoutes", solution.getRoutes().size());
         solutionMap.put("unassignedJobs", solution.getUnassignedJobs().size() );
         retVal.put("solution", solutionMap);
@@ -200,7 +243,8 @@ public class MainVrp {
                         new LinkedHashMap<String, Object>();
                 Start start = route.getStart();
                 mStartParam.put("vehicle", vehicleId);
-                mStartParam.put("job", start.getName());
+                mStartParam.put("activity", start.getName());
+                mStartParam.put("job", "-");
                 mStartParam.put("capacity", start.getSize().get(0));
                 mStartParam.put("lng", start.getLocation().getCoordinate().getX());
                 mStartParam.put("lat", start.getLocation().getCoordinate().getY());
@@ -212,17 +256,17 @@ public class MainVrp {
                             new LinkedHashMap<String, Object>();
                     
                     mRouteParam.put("vehicle", vehicleId);
+                    mRouteParam.put("activity", ta.getName());
                     
                     if( ta instanceof TourActivity.JobActivity ) {
                         Job job =  ((TourActivity.JobActivity) ta).getJob();
                         mRouteParam.put("job", job.getId() );
                     }
                     else {
-                        mRouteParam.put("job", ta.getName() );
+                        mRouteParam.put("job", "-" );
                     }
                     
-                    mRouteParam.put("capacity", 
-                            ta.getSize().get(0) );
+                    mRouteParam.put("capacity", ta.getSize().get(0) );
                     
                     Coordinate coord = ta.getLocation().getCoordinate();                    
                     mRouteParam.put("lng", coord.getX());
@@ -235,8 +279,9 @@ public class MainVrp {
                         new LinkedHashMap<String, Object>();
                 End end = route.getEnd();
                 mEndParam.put("vehicle", vehicleId);
-                mEndParam.put("job", end.getName());
-                mEndParam.put("capacity", end.getSize().get(0));
+                mEndParam.put("activity", end.getName());
+                mEndParam.put("job", "-");
+                mEndParam.put("capacity", end.getSize().get(1));
                 mEndParam.put("lng", end.getLocation().getCoordinate().getX());
                 mEndParam.put("lat", end.getLocation().getCoordinate().getY());
                 
@@ -256,7 +301,10 @@ public class MainVrp {
     }
     
     public VehicleRoutingProblemSolution planSolver( 
-            VrpParamBean vrpParamBean )  {
+            List<VrpVehicleBean> vrpVehicles,
+            VrpServiceParamBean  vrpServiceParamBean,
+            VrpShipmentParamBean vrpShipmentParamBean )  {
+        
         logger.info("Solving Plan");
 
         VehicleRoutingProblem.Builder vrpBuilder = 
@@ -264,7 +312,7 @@ public class MainVrp {
 
         int cnt = 0;
         
-        for( VrpVehicleBean v : vrpParamBean.getVehicles() ) {
+        for( VrpVehicleBean v : vrpVehicles ) {
             logger.info("Vehicle Capacity:"+v.getCapacity());
             cnt++;
             /**
@@ -293,23 +341,48 @@ public class MainVrp {
             vrpBuilder.addVehicle( vehicle );
         }
 
-        cnt = 0;
-        for( VrpServiceBean s : vrpParamBean.getServices() ) {
-           cnt ++;
-           /**
-            * Adding Services
-            */
-           com.graphhopper.jsprit.core.problem.job.Service service = 
-                   com.graphhopper.jsprit.core.problem.job.Service.Builder
-                   .newInstance("service"+cnt)
-                   .addSizeDimension(s.getWeightIndex(), s.getCapacity())
-                   .setLocation(Location.newInstance(
-                           s.getLocation().getLng(),s.getLocation().getLat()))
-                   .build();
-           
-           vrpBuilder.addJob(service);
+        /**
+         * Adding Services
+         */
+        if( vrpServiceParamBean != null ) {
+            cnt = 0;
+            for( VrpServiceBean s : vrpServiceParamBean.getServices() ) {
+                cnt ++;
+
+                com.graphhopper.jsprit.core.problem.job.Service service = 
+                        com.graphhopper.jsprit.core.problem.job.Service.Builder
+                        .newInstance("service"+cnt)
+                        .addSizeDimension(s.getWeightIndex(), s.getCapacity())
+                        .setLocation(Location.newInstance(
+                                s.getLocation().getLng(),s.getLocation().getLat()))
+                        .build();
+
+                vrpBuilder.addJob(service);
+            }
         }
 
+        /**
+         * Adding Shipments
+         */
+        if( vrpShipmentParamBean != null ) {
+            cnt = 0;
+            for( VrpShipmentBean s : vrpShipmentParamBean.getShipment() ) {
+                cnt ++;
+                Shipment shipment = Shipment.Builder
+                        .newInstance("shipment"+cnt)  
+                        .addSizeDimension(s.getWeightIndex(), s.getCapacity())
+                        .setDeliveryLocation(Location.newInstance(
+                                s.getDelivery().getLng(),
+                                s.getDelivery().getLat()))
+                        .setPickupLocation(Location.newInstance(
+                                s.getPickup().getLng(),
+                                s.getPickup().getLat()))
+                        .build();
+                
+                vrpBuilder.addJob( shipment );
+            }
+        }
+        
         VehicleRoutingProblem problem = vrpBuilder.build();
         VehicleRoutingAlgorithm algorithm = Jsprit.createAlgorithm(problem);
 

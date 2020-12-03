@@ -1,27 +1,28 @@
 /**
  * パッケージ名：org.pgrserver.bean
- * ファイル名  ：VrpServiceBean.java
+ * ファイル名  ：VrpShipmentBean.java
  * 
  * @author mbasa
- * @since Nov 25, 2020
+ * @since Dec 2, 2020
  */
 package org.pgrserver.bean;
 
 /**
- * 説明：Service Bean for the VrpPrameter
+ * 説明：
  *
  */
-public class VrpServiceBean {
+public class VrpShipmentBean {
 
     private int weightIndex     = 0;
     private int capacity        = 0;
-    private LatLngBean location = new LatLngBean();
-
+    private LatLngBean pickup   = new LatLngBean();
+    private LatLngBean delivery = new LatLngBean();
+    
     /**
      * コンストラクタ
      *
      */
-    public VrpServiceBean() {
+    public VrpShipmentBean() {
     }
 
     /**
@@ -30,35 +31,54 @@ public class VrpServiceBean {
     public int getWeightIndex() {
         return weightIndex;
     }
+
     /**
      * @param weightIndex weightIndex を設定する
      */
     public void setWeightIndex(int weightIndex) {
         this.weightIndex = weightIndex;
     }
+
     /**
      * @return capacity を取得する
      */
     public int getCapacity() {
         return capacity;
     }
+
     /**
      * @param capacity capacity を設定する
      */
     public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
+
     /**
-     * @return location を取得する
+     * @return pickup を取得する
      */
-    public LatLngBean getLocation() {
-        return location;
+    public LatLngBean getPickup() {
+        return pickup;
     }
+
     /**
-     * @param location location を設定する
+     * @param pickup pickup を設定する
      */
-    public void setLocation(LatLngBean location) {
-        this.location = location;
+    public void setPickup(LatLngBean pickup) {
+        this.pickup = pickup;
+    }
+
+    /**
+     * @return delivery を取得する
+     */
+    public LatLngBean getDelivery() {
+        return delivery;
+    }
+
+    /**
+     * @param delivery delivery を設定する
+     */
+    public void setDelivery(LatLngBean delivery) {
+        this.delivery = delivery;
     }
 
 }

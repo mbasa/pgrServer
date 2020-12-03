@@ -9,7 +9,8 @@ package org.pgrserver.controller;
 
 import java.util.Map;
 
-import org.pgrserver.bean.VrpParamBean;
+import org.pgrserver.bean.VrpServiceParamBean;
+import org.pgrserver.bean.VrpShipmentParamBean;
 import org.pgrserver.vrp.MainVrp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,44 +41,93 @@ public class VrpController {
     @Autowired
     MainVrp mainVrp;
 
-
-    @PostMapping(value="/generateRoute",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+    /**
+     * 
+     * Generate a Service Trip Route
+     * 
+     * @param vrpServiceParamBean
+     * @return
+     */
+    @PostMapping(value = "/generateServiceRoute", 
+            consumes = MediaType.APPLICATION_JSON_VALUE, 
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object generateRoute(
-            @RequestBody @ApiParam(required=true,value="Generate a Trip Route")
-                VrpParamBean vrpParamBean) { 
-                        
-        return mainVrp.createRoute(vrpParamBean);
+    public Object generateServiceRoute(
+            @RequestBody @ApiParam(required = true, 
+            value = "Generate a Service Trip Route") 
+            VrpServiceParamBean vrpServiceParamBean) {
+
+        return mainVrp.createServiceRoute(vrpServiceParamBean);
+
+    }
+
+    /**
+     * 
+     * Generate a Service Trip Plan
+     * 
+     * 
+     * @param vrpServiceParamBean
+     * @return JSON Object
+     */
+    @PostMapping(value = "/generateServicePlan", 
+            consumes = MediaType.APPLICATION_JSON_VALUE, 
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object generateServicePlan(
+            @RequestBody @ApiParam(required = true, 
+            value = "Generate a Service Trip Plan") 
+            VrpServiceParamBean vrpServiceParamBean) {
+
+        Map<String, Object> retVal;
+
+        try {
+            retVal = mainVrp.createServicePlan(vrpServiceParamBean);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<Object>(
+                    "{\"status\":\"error with parameter data\"}",
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        return (retVal);
+    }
+
+    @PostMapping(value = "/generateShipmentRoute", 
+            consumes = MediaType.APPLICATION_JSON_VALUE, 
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object generateShipmentRoute(
+            @RequestBody @ApiParam(required = true, 
+            value = "Generate a Shipment Trip Route") 
+            VrpShipmentParamBean vrpShipmentParamBean) {
+
+        return mainVrp.createShipmentRoute(vrpShipmentParamBean);
 
     }
     
     /**
      * 
-     * Generate a Trip Plan
+     * Generate a Shipment Plan
      * 
-     * 
-     * @param vrpParamBean
+     * @param vrpShipmentParamBean
      * @return JSON Object
      */
-    @PostMapping(value="/generatePlan",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+    @PostMapping(value = "/generateShipmentPlan", 
+            consumes = MediaType.APPLICATION_JSON_VALUE, 
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public Object generatePlan(
-            @RequestBody @ApiParam(required=true,value="Generate a Trip Plan")
-                VrpParamBean vrpParamBean) { 
+    public Object generateShipmentPlan(
+            @RequestBody @ApiParam(required = true, 
+            value = "Generate a Service Trip Plan") 
+            VrpShipmentParamBean vrpShipmentParamBean) {
 
-        Map<String,Object> retVal;
-        
+        Map<String, Object> retVal;
+
         try {
-            retVal = mainVrp.createPlan(vrpParamBean);
+            retVal = mainVrp.createShipmentPlan(vrpShipmentParamBean);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<Object>("{\"status\":\"error with parameter data\"}",
+            return new ResponseEntity<Object>(
+                    "{\"status\":\"error with parameter data\"}",
                     HttpStatus.BAD_REQUEST);
         }
-        
-        return( retVal ); 
-    }    
 
+        return (retVal);
+    }
 }

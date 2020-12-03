@@ -1,6 +1,6 @@
 /**
  * パッケージ名：org.pgrserver.bean
- * ファイル名  ：VrpParamBean.java
+ * ファイル名  ：VrpServiceParamBean.java
  * 
  * @author mbasa
  * @since Nov 24, 2020
@@ -15,7 +15,7 @@ import java.util.List;
  * 説明： Vrp Input Parameters
  *
  */
-public class VrpParamBean {
+public class VrpServiceParamBean {
 
     private List<VrpVehicleBean> vehicles = new ArrayList<VrpVehicleBean>();
     private List<VrpServiceBean> services = new ArrayList<VrpServiceBean>();
@@ -23,7 +23,7 @@ public class VrpParamBean {
      * コンストラクタ
      *
      */
-    public VrpParamBean() {
+    public VrpServiceParamBean() {
     }
     /**
      * @return vehicles を取得する
