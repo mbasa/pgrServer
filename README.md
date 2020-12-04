@@ -12,6 +12,10 @@
    All Directed Path
 ![Alt text](pics/AllDirectedPath.png?raw=true)
 
+
+   Vehicle Routing Problem (VRP)
+![Alt text](pics/VRP.png?raw=true)
+
 Introduction
 ------------
 pgrServer is a routing service that is able to use pgRouting topologies 
@@ -38,6 +42,9 @@ As of this version, the following search algorithms are included as a service:
 take time since a contraction graph will be created first. Subsequent calls will
 result in a much faster response.)
 
+pgrServer is also able to solve **Vehicle Routing Problems (VRP)** using the JSprit VRP engine in order to find the optimal set of routes for a fleet of vehicles to traverse orders from a set of customers. 
+
+
 When to use pgrServer
 ---------------------
 
@@ -52,6 +59,11 @@ When to use pgrServer
 
 * When the cost (weight) of the graph is not dynamic. pgrServer can be used when the cost does not have to be computed at each request, since pgrServer only reads the cost whenever the graph is loaded. pgrServer can be forced to re-read the graph for routes that have semi-dynamic costs. 
 
+
+* When there is a need to solve VRP optimal routes and generate a Plan or 
+generate the Shortest Path Routes of the the created output Plan.
+
+ 
 Requirements
 ------------
 * PostgreSQL > 9.4
