@@ -14,13 +14,13 @@
 
 Introduction
 ------------
-pgrServer is a routing service that is able to use pgRouting topologies 
+pgrServer is a routing service that is able to use pgRouting topologies
 to load data into a JGraphT graph for very fast searches even with dense networks.
 
-The graph is created at startup when the topology is read from a PostgreSQL database. This graph though can be re-created at regular intervals by making a service request, for networks that have dynamic costs. 
- 
+The graph is created at startup when the topology is read from a PostgreSQL database. This graph though can be re-created at regular intervals by making a service request, for networks that have dynamic costs.
+
 And similar to pgRouting, this application is not road navigation centric. This application can be used for a wide variety of networks: i.e. utilities (fiber optic lines), water systems, etc.
- 
+
 As of this version, the following search algorithms are included as a service:
 
 * Dijkstra ( for dense networks )
@@ -34,23 +34,46 @@ As of this version, the following search algorithms are included as a service:
 * Johnson ( for sparse networks )
 * Floyd-Warshall ( for sparse networks )
 
-(*Note: Initial call to a ContractionHierarchyBidirectionalDijkstra request will 
+(*Note: Initial call to a ContractionHierarchyBidirectionalDijkstra request will
 take time since a contraction graph will be created first. Subsequent calls will
 result in a much faster response.)
 
 When to use pgrServer
 ---------------------
 
-* When a web service is required to serve route data. pgrServer can be used to easily serve data to a variety of web or mobile application clients. 
+* When a web service is required to serve route data. pgrServer can be used to easily serve data to a variety of web or mobile application clients.
 
 
-* When the network is very dense and pgRouting struggles with long distance searches. pgrServer stores the entire graph into memory at start and can do route searches within the entire graph. 
+* When the network is very dense and pgRouting struggles with long distance searches. pgrServer stores the entire graph into memory at start and can do route searches within the entire graph.
 
 
 * When performance is paramount. pgrServer can return routes within ~50 kilometer searches in milliseconds even in very dense networks.   
 
 
-* When the cost (weight) of the graph is not dynamic. pgrServer can be used when the cost does not have to be computed at each request, since pgrServer only reads the cost whenever the graph is loaded. pgrServer can be forced to re-read the graph for routes that have semi-dynamic costs. 
+* When the cost (weight) of the graph is not dynamic. pgrServer can be used when the cost does not have to be computed at each request, since pgrServer only reads the cost whenever the graph is loaded. pgrServer can be forced to re-read the graph for routes that have semi-dynamic costs.
+
+Docker
+-----------
+
+For convenience, you can build the Docker image for this project. There are a few environment variables you'd like to set:
+
+- `POSTGRES_HOST`: the host IP/fully qualified domain. Default `localhost`.
+- `POSTGRES_PORT`: the port designated for the Postgres instance. Default `5432`.
+- `POSTGRES_DB`: the database you. Default `5432`.
+- `POSTGRES_USER`: the Postgres user name. Default `postgres`.
+- `POSTGRES_PASS`: the Postgres password. Default `postgres`.
+
+They correspond to [Kartoza](https://kartoza.com)'s excellent PostGIS image (s. `docker-compose.yml`).
+
+**Note**, you still need to [prepare the topology](#preparing-the-topology) with pgRouting or [osm2po](https://osm2po.de). Also, the docker way is only good for testing the project. **Don't run a production server with this.**
+
+```
+# build the image and spin up the container(s)
+docker-compose build pgrserver
+docker-compose up -d
+```
+
+Now should be able to test the app via http://localhost:8080/pgrServer/swagger-ui.html.
 
 Requirements
 ------------
@@ -72,11 +95,11 @@ Preparing the Topology
 
 * Create a View Table __pgrserver__ based on the topology table that will contain the following fields:
 id, source, target, cost, geom.
-  
+
 ```sql
-CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost,wkb_geometry AS geom FROM kanto ; 
+CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost,wkb_geometry AS geom FROM kanto ;
 ```
- 
+
 Building the Application
 ------------------------
 
@@ -109,7 +132,7 @@ http://localhost:8080/pgrServer/swagger-ui.html
 Reload the Graph
 ---------------
 
-To reload the graph if the __cost__ has changed, send a POST request with the authcode parameter value. The authcode value can be set by updating the installed pgrs_auth table in the PostgreSQL database. 
+To reload the graph if the __cost__ has changed, send a POST request with the authcode parameter value. The authcode value can be set by updating the installed pgrs_auth table in the PostgreSQL database.
 
 ```shell
 curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphreload"
@@ -118,7 +141,7 @@ curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphre
 Viewing the Data
 ----------------
 
-pgrServer returns a GeoJSON object for the created route or driving distance polygon, hence any application that supports GeoJSON can be used to view the results. 
+pgrServer returns a GeoJSON object for the created route or driving distance polygon, hence any application that supports GeoJSON can be used to view the results.
 
 To quickly view the results, GeoJSONLint web service can be used:
 
@@ -132,6 +155,4 @@ It is also possible to use the result as a Vector Layer in __QGIS__ by doing:
 Layer -> Add Layer -> Add Vector Layer
 ```
 
-and set the protocol to `HTTP` and add the URL request of pgrServer. 
-
-
+and set the protocol to `HTTP` and add the URL request of pgrServer.

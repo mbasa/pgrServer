@@ -1,0 +1,31 @@
+version: "2.4"
+networks:
+  pgrserver:
+
+services:
+  pgrServer:
+    image: mbasa/pgrserver:latest
+    container_name: pgrserver
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=postgres
+      - POSTGRES_DB=pgr
+      - POSTGRES_HOST=pgr_postgis
+      - POSTGRES_PORT=5432
+    # network_mode: host  # use this instead of networks for a separate Postgres instance
+    networks:
+      - pgrserver
+    ports:
+      - 8080:8080
+  pgr_postgis:
+    image: kartoza/postgis:13.0
+    volumes:
+      - postgis-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=pgr
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASS=postgres
+      # Add extensions you need to be enabled by default in the DB. Default are the three specified below
+      - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,pgrouting
+    networks:
+      - pgrserver
