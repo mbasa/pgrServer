@@ -1,6 +1,8 @@
 version: "2.4"
 networks:
   pgrserver:
+volumes:
+  pgr-postgis-data:
 
 services:
   pgrServer:
@@ -12,7 +14,7 @@ services:
       - POSTGRES_DB=pgr
       - POSTGRES_HOST=pgr_postgis
       - POSTGRES_PORT=5432
-    # network_mode: host  # use this instead of networks for a separate Postgres instance
+    #network_mode: host  # use this instead of networks for a separate Postgres instance
     networks:
       - pgrserver
     ports:
@@ -20,7 +22,7 @@ services:
   pgr_postgis:
     image: kartoza/postgis:13.0
     volumes:
-      - postgis-data:/var/lib/postgresql
+      - pgr-postgis-data:/var/lib/postgresql
     environment:
       - POSTGRES_DB=pgr
       - POSTGRES_USER=postgres
