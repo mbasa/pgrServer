@@ -24,7 +24,9 @@ jobs:
     - name: Build with Maven
       run: mvn -B clean package --file pom.xml -DskipTests
 
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml -DskipTests
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+    - run: mkdir staging && cp target/*.war staging
+    - uses: actions/upload-artifact@v2
+      with:
+        name: Package
+        path: staging
+
