@@ -24,9 +24,10 @@ jobs:
     - name: Build with Maven
       run: mvn -B clean package --file pom.xml -DskipTests
 
-    - run: mkdir staging && cp target/*.war staging
-    - uses: actions/upload-artifact@v2
+    - uses: ncipollo/release-action@v1
       with:
-        name: Package
-        path: staging
+        artifacts: "target/pgrServer.war"
+        replacesArtifacts: true
+        allowUpdates: true
+        token: ${{ secrets.GITHUB_TOKEN }}
 
