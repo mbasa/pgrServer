@@ -151,7 +151,7 @@ public class MainGraph {
          */
         NearestNeighborHeuristicTSP<Integer, LabeledWeightedEdge> nnhTsp = 
                 new NearestNeighborHeuristicTSP<Integer, LabeledWeightedEdge>(
-                        new Integer(0));
+                        Integer.valueOf(0));
         
         GraphPath<Integer,LabeledWeightedEdge> path = nnhTsp.getTour(tspGraph);
         List<Integer> vertexList = path.getVertexList();
