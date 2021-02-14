@@ -12,6 +12,10 @@
    All Directed Path
 ![Alt text](pics/AllDirectedPath.png?raw=true)
 
+
+   Vehicle Routing Problem (VRP)
+![Alt text](pics/VRP.png?raw=true)
+
 Introduction
 ------------
 pgrServer is a routing service that is able to use pgRouting topologies
@@ -37,6 +41,9 @@ As of this version, the following search algorithms are included as a service:
 (*Note: Initial call to a ContractionHierarchyBidirectionalDijkstra request will
 take time since a contraction graph will be created first. Subsequent calls will
 result in a much faster response.)
+
+pgrServer is also able to solve **Vehicle Routing Problems (VRP)** using the JSprit VRP engine in order to find the optimal set of routes for a fleet of vehicles to traverse orders from a set of customers. 
+
 
 When to use pgrServer
 ---------------------
@@ -75,6 +82,11 @@ docker-compose up -d
 
 Now should be able to test the app via http://localhost:8080/pgrServer/swagger-ui.html.
 
+
+* When there is a need to solve VRP optimal routes and generate a Plan or 
+generate the Shortest Path Routes of the the created output Plan.
+
+ 
 Requirements
 ------------
 * PostgreSQL > 9.4
