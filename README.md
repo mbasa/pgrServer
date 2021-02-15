@@ -59,20 +59,27 @@ When to use pgrServer
 
 * When the cost (weight) of the graph is not dynamic. pgrServer can be used when the cost does not have to be computed at each request, since pgrServer only reads the cost whenever the graph is loaded. pgrServer can be forced to re-read the graph for routes that have semi-dynamic costs.
 
+ 
+Requirements
+------------
+* PostgreSQL > 9.4
+* PostGIS
+* PgRouting or Osm2Po (for topology creation)
+* Maven
+* Tomcat Application Server for deployment
+
 Docker
 -----------
 
-For convenience, you can build the Docker image for this project. There are a few environment variables you'd like to set:
+For convenience, a Docker image can be built for this project. There are a few environment variables that can be optionally set in order for the Docker image to work properly:
 
 - `POSTGRES_HOST`: the host IP/fully qualified domain. Default `localhost`.
 - `POSTGRES_PORT`: the port designated for the Postgres instance. Default `5432`.
-- `POSTGRES_DB`: the database you. Default `5432`.
+- `POSTGRES_DB`  : the database you. Default `pgr`.
 - `POSTGRES_USER`: the Postgres user name. Default `postgres`.
 - `POSTGRES_PASS`: the Postgres password. Default `postgres`.
 
-They correspond to [Kartoza](https://kartoza.com)'s excellent PostGIS image (s. `docker-compose.yml`).
-
-**Note**, you still need to [prepare the topology](#preparing-the-topology) with pgRouting or [osm2po](https://osm2po.de). Also, the docker way is only good for testing the project. **Don't run a production server with this.**
+**Note**, it is still necessary to [prepare the topology](#preparing-the-topology) with pgRouting or [osm2po](https://osm2po.de). Also, the docker usage is advisable for testing or development purposes only. **It is highly advisable not to run a production server with the Docker image.**
 
 ```
 # build the image and spin up the container(s)
@@ -80,26 +87,13 @@ docker-compose build pgrserver
 docker-compose up -d
 ```
 
-Now should be able to test the app via http://localhost:8080/pgrServer/swagger-ui.html.
-
-
-* When there is a need to solve VRP optimal routes and generate a Plan or 
-generate the Shortest Path Routes of the the created output Plan.
-
- 
-Requirements
-------------
-* PostgreSQL > 9.4
-* PostGIS
-* PgRouting (to create a topology)
-* Maven
-* Tomcat Application Server for deployment
+From here, the app can be tested via http://localhost:8080/pgrServer/swagger-ui.html.
 
 
 Preparing the Topology
 ----------------------
 
-* Create a topology table. Refer to pgRouting's Documentations on the __pgr_createTopology__ function.
+* Create a topology table. Refer to pgRouting's Documentations on the __pgr_createTopology__ function. It is also possible to use Osm2Po to create a topology table using OSM pbf data files. Also refer to the Osm2Po documentations on topology creation. 
 
 
 * Ensure that there is an index on an __unique id__ field, an index on the __source__ field, an index on the __target__ field, and a spatial index on the __geometry__ field of the topology table.
@@ -168,3 +162,15 @@ Layer -> Add Layer -> Add Vector Layer
 ```
 
 and set the protocol to `HTTP` and add the URL request of pgrServer.
+
+Tomcat Deployment
+-----------------
+
+Since this is a memory intensive application, configuring Tomcat to use more memory will be necessary, especially with very large data sets ( greater than or equal to 9 million edges ) to avoid __OutOfMemoryError__ problems. The argument settings below can be used to let Tomcat allocate up to 8GB of memory for its usage:
+
+```
+-Xms2048m -Xmx8192m -server
+```
+
+Refer to Tomcat documentation for more information on memory allocation. 
+
