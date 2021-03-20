@@ -49,6 +49,13 @@ public class CustomRepository {
                 sql,PgrServer.class).getSingleResult();
     }
 
+    public Object getGraphBnd() {
+        String sql = "select st_asgeojson(st_extent(geom)) from pgrserver ;";
+        
+        return entityManager.createNativeQuery( sql )
+                .getSingleResult();
+    }
+    
     public Object createJsonDriveDistPoly(Set<Integer> list) {
         String listStr = list.toString();
         listStr = listStr.replace("[", "(");
