@@ -67,7 +67,8 @@ public class CustomRepository {
                 + "'geometry',CAST(st_asgeojson(t.geom) as json)"
                 + ") as TEXT) as st_json "
                 + "from (select st_concavehull(st_collect("
-                + "st_startpoint(geom)),0.8) as geom from pgrserver "
+                + "st_startpoint(ST_GeometryN(geom,1))),0.8) as geom "
+                + "from pgrserver "
                 + "where source in " 
                 + listStr
                 + ") t;";
