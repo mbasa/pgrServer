@@ -174,3 +174,9 @@ Since this is a memory intensive application, configuring Tomcat to use more mem
 
 Refer to Tomcat documentation for more information on memory allocation. 
 
+
+To pass memory parameters into the spring-boot application's built in  Tomcat server using `maven`, this can be performed: 
+
+```
+mvn spring-boot:run -Drun.jvmArguments="-Xms2048m -Xmx4096m"
+```
