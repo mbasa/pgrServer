@@ -100,7 +100,7 @@ public class CustomRepository {
         }
 
         String sql = "select CAST(json_build_object('type','Feature',"
-                + "'id',"+ gid + ","
+                + "'id','"+ gid + "',"
                 + "'properties',json_build_object('feat_length',"
                 + "st_length(t.geom,true),"
                 + "'fid',"+gid+attrib+"),"
@@ -122,7 +122,7 @@ public class CustomRepository {
         listStr = listStr.replace("]", ")");
 
         String sql = "select CAST(json_build_object('type','Feature',"
-                + "'id',"+ gid + ","
+                + "'id','"+ gid + "',"
                 + "'properties',json_build_object('feat_length',"
                 + "st_length(t.geom,true),"
                 + "'fid',"+gid+"),"
