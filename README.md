@@ -19,7 +19,8 @@
 Introduction
 ------------
 pgrServer is a routing service that is able to use pgRouting topologies
-to load data into a JGraphT graph for very fast searches even with dense networks.
+to load data into a JGraphT graph for very fast searches even with dense networks 
+such as the OpenStreetMap (OSM) data set. 
 
 The graph is created at startup when the topology is read from a PostgreSQL database. This graph though can be re-created at regular intervals by making a service request, for networks that have dynamic costs.
 
