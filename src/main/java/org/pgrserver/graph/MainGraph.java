@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
@@ -34,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -235,6 +238,9 @@ public class MainGraph {
         return retVal;        
     }
         
+    @Value(value = "${chbDijkstra.thread.pool:7}")
+    private int chbThreadPool;
+    
     public List<Integer> chbDijkstraSearch(int start,int end) {
         List<Integer> retVal = new ArrayList<Integer>();
         
@@ -243,8 +249,14 @@ public class MainGraph {
                 
         try {
             if( chbd == null ) {
+                logger.info("chbDijkstra Thread Pool Size: "+chbThreadPool);
+                
+                ThreadPoolExecutor executor = 
+                        (ThreadPoolExecutor) Executors.newFixedThreadPool(
+                                chbThreadPool);
+                
                 chbd = new ContractionHierarchyBidirectionalDijkstra<Integer, 
-                    LabeledWeightedEdge>(defaultGraph);
+                    LabeledWeightedEdge>(defaultGraph,executor);
             }
             
             List<Integer> list =  
