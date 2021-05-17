@@ -131,7 +131,7 @@ Display the List of APIs
 The list of APIs can be viewed by displaying the Swagger page:
 
 ```html
-http://localhost:8080/pgrServer/swagger-ui.html
+http://localhost:8080/pgrServer/
 ```
 
 ![Alt text](pics/Swagger.png?raw=true)
