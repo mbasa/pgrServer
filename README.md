@@ -88,7 +88,7 @@ docker-compose build pgrserver
 docker-compose up -d
 ```
 
-From here, the app can be tested via http://localhost:8080/pgrServer/swagger-ui.html.
+From here, the app can be tested by displaying the *List of APIs*. 
 
 
 Preparing the Topology
