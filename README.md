@@ -88,7 +88,8 @@ docker-compose build pgrserver
 docker-compose up -d
 ```
 
-From here, the app can be tested by displaying the *List of APIs*. 
+From here, the application can now be tested by 
+[displaying the List of APIs](#display-the-list-of-apis). 
 
 
 Preparing the Topology
