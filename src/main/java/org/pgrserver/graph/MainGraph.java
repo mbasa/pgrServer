@@ -79,23 +79,20 @@ public class MainGraph {
         
         defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
                 LabeledWeightedEdge>(LabeledWeightedEdge.class);
-
+        
         for(PgrServer p : pgrData) {
             defaultGraph.addVertex((int)p.getSource());
             defaultGraph.addVertex((int)p.getTarget());
-        }
 
-        for(PgrServer p : pgrData) {      
             LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-            lwe.setEdgeId(p.getId());
-                       
+            lwe.setEdgeId(p.getId());                      
+             
             defaultGraph.addEdge(
-                    (int)p.getSource(),(int)p.getTarget(),lwe);
+                    (int)p.getSource(),(int)p.getTarget(),lwe);      
             
-            defaultGraph.setEdgeWeight(
-                    defaultGraph.getEdge((int)p.getSource(),
-                            (int)p.getTarget()), p.getCost());
+            defaultGraph.setEdgeWeight(lwe, p.getCost());
         } 
+        
         logger.info("Data received: "+pgrData.size());
     }
 
