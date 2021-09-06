@@ -160,7 +160,7 @@ curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphre
 Viewing the Data
 ----------------
 
-A demo application, [pgrServerDemo](http://github.com/pgrServerDemo) , has been created
+A demo application, *[pgrServerDemo](http://github.com/mbasa/pgrServerDemo)* , has been created
 to easily display selected features of pgrServer.
 
 
