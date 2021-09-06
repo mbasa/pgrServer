@@ -111,6 +111,14 @@ id, source, target, cost, geom.
 CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost,wkb_geometry AS geom FROM kanto ;
 ```
 
+Getting the Application
+-----------------------
+
+The *WAR* file of the application can be downloaded from from each stable release
+of this repository. 
+
+
+
 Building the Application
 ------------------------
 
@@ -152,7 +160,11 @@ curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphre
 Viewing the Data
 ----------------
 
-pgrServer returns a GeoJSON object for the created route or driving distance polygon, hence any application that supports GeoJSON can be used to view the results.
+A demo application, *[pgrServerDemo](http://github.com/mbasa/pgrServerDemo)* , has been created
+to easily display selected features of pgrServer.
+
+
+Also, pgrServer returns a GeoJSON object for the created route or driving distance polygon, hence any application that supports GeoJSON can be used to view the results.
 
 To quickly view the results, GeoJSONLint web service can be used:
 
