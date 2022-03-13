@@ -105,11 +105,14 @@ Preparing the Topology
 
 
 * Create a View Table __pgrserver__ based on the topology table that will contain the following fields:
-id, source, target, cost, geom.
+id, source, target, cost, length, geom.
 
 ```sql
-CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost,wkb_geometry AS geom FROM kanto ;
+CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost, length, wkb_geometry AS geom FROM kanto ;
 ```
+
+* Note: the `length` column has to be in **meters**(m) units.
+
 
 Getting the Application
 -----------------------

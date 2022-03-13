@@ -8,9 +8,11 @@
 package org.pgrserver.graph;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -27,6 +29,7 @@ import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
 import org.jgrapht.alg.tour.NearestNeighborHeuristicTSP;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
+import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.traverse.ClosestFirstIterator;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.repository.CustomRepository;
@@ -39,6 +42,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+
 /**
  * 説明：
  *
@@ -49,9 +53,12 @@ public class MainGraph {
         
     private static DefaultDirectedWeightedGraph<Integer, LabeledWeightedEdge> 
         defaultGraph;
-    
+        
     private static ContractionHierarchyBidirectionalDijkstra<Integer, 
         LabeledWeightedEdge> chbd = null;
+    
+    private static Map<LabeledWeightedEdge,Double> lengthCost = 
+            new HashMap<LabeledWeightedEdge,Double>();
     
     private final Logger logger = LoggerFactory.getLogger(MainGraph.class);
     
@@ -79,6 +86,7 @@ public class MainGraph {
         
         defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
                 LabeledWeightedEdge>(LabeledWeightedEdge.class);
+        lengthCost.clear();
         
         for(PgrServer p : pgrData) {
             defaultGraph.addVertex((int)p.getSource());
@@ -91,6 +99,7 @@ public class MainGraph {
                     (int)p.getSource(),(int)p.getTarget(),lwe);      
             
             defaultGraph.setEdgeWeight(lwe, p.getCost());
+            lengthCost.put(lwe,p.getLength());
         } 
         
         logger.info("Data received: "+pgrData.size());
@@ -349,9 +358,16 @@ public class MainGraph {
         }
 
         try {
+             /**
+              * Creating new graph with Length as cost
+              */
+            AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
+                    new  AsWeightedGraph<Integer, LabeledWeightedEdge>
+            (defaultGraph,lengthCost);
+            
             ClosestFirstIterator<Integer, LabeledWeightedEdge> driveDist = 
                     new ClosestFirstIterator<Integer, LabeledWeightedEdge>(
-                            defaultGraph, source, radius);
+                            costGraph, source, radius);
             
             while( driveDist.hasNext() ) {
                 visited.add(driveDist.next());

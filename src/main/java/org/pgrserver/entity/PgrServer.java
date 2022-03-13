@@ -23,7 +23,8 @@ public class PgrServer {
     private int id;
     private int source;
     private int target;
-    private int cost;
+    private double cost;
+    private double length;
     
     /**
      * コンストラクタ
@@ -77,15 +78,29 @@ public class PgrServer {
     /**
      * @return cost を取得する
      */
-    public int getCost() {
+    public double getCost() {
         return cost;
     }
 
     /**
      * @param cost cost を設定する
      */
-    public void setCost(int cost) {
+    public void setCost(double cost) {
         this.cost = cost;
+    }
+
+    /**
+     * @return length を取得する
+     */
+    public double getLength() {
+        return length;
+    }
+
+    /**
+     * @param length length を設定する
+     */
+    public void setLength(double length) {
+        this.length = length;
     }
 
 }
