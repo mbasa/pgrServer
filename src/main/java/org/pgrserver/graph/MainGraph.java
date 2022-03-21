@@ -22,13 +22,14 @@ import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.AllDirectedPaths;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
+import org.jgrapht.alg.shortestpath.BidirectionalDijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.ContractionHierarchyBidirectionalDijkstra;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.FloydWarshallShortestPaths;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
 import org.jgrapht.alg.tour.NearestNeighborHeuristicTSP;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
+import org.jgrapht.graph.AbstractBaseGraph;
 import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.traverse.ClosestFirstIterator;
 import org.pgrserver.entity.PgrServer;
@@ -51,7 +52,7 @@ import org.springframework.stereotype.Service;
 @Configurable
 public class MainGraph {
         
-    private static DefaultDirectedWeightedGraph<Integer, LabeledWeightedEdge> 
+    private static AbstractBaseGraph<Integer, LabeledWeightedEdge> 
         defaultGraph;
         
     private static ContractionHierarchyBidirectionalDijkstra<Integer, 
@@ -77,15 +78,27 @@ public class MainGraph {
     }
     
    
-    public void createDirectedGraph() {
+    @Value(value = "${graph.directed:true}")
+    private boolean useDirectedGraph;
+    
+    public void createDefaultGraph() {
         logger.info("Creating Graph");
         
         List<PgrServer> pgrData = graphRepository.getGraph();
         
         chbd = null;
         
-        defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
+        if( useDirectedGraph ) {
+            logger.info("Creating Directed Graph");
+            defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
+                    LabeledWeightedEdge>(LabeledWeightedEdge.class);            
+        }
+        else {
+            logger.info("Creating Undirected Graph");
+            defaultGraph = new DefaultUndirectedWeightedGraph<Integer, 
                 LabeledWeightedEdge>(LabeledWeightedEdge.class);
+        }
+        
         lengthCost.clear();
         
         for(PgrServer p : pgrData) {
@@ -283,7 +296,7 @@ public class MainGraph {
                 
         try {
             List<Integer> list =  
-                    DijkstraShortestPath.findPathBetween(defaultGraph,
+                    BidirectionalDijkstraShortestPath.findPathBetween(defaultGraph,
                     start, end).getVertexList();            
             retVal = convertVerticesToEdges(list);                        
         }

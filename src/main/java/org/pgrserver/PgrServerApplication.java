@@ -21,6 +21,6 @@ public class PgrServerApplication {
 	
 	@PostConstruct
 	private void populateGraph() {
-	    mainGraph.createDirectedGraph();
+	    mainGraph.createDefaultGraph();
 	}
 }
