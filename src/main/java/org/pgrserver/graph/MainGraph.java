@@ -113,6 +113,21 @@ public class MainGraph {
             
             defaultGraph.setEdgeWeight(lwe, p.getCost());
             lengthCost.put(lwe,p.getLength());
+            
+            /**
+             * setting up one-way streets by creating reverse route for 
+             * normal roads. Applies only when set to use Directed Graph.
+             */
+            if( p.getReverse_cost() <= p.getCost() && useDirectedGraph ) { 
+                LabeledWeightedEdge lweRc = new LabeledWeightedEdge();
+                lweRc.setEdgeId(p.getId()); 
+                
+                defaultGraph.addEdge(
+                        (int)p.getTarget(),(int)p.getSource(),lweRc);      
+                
+                defaultGraph.setEdgeWeight(lweRc, p.getCost());
+                lengthCost.put(lweRc,p.getLength());
+            }
         } 
         
         logger.info("Data received: "+pgrData.size());

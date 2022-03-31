@@ -38,7 +38,7 @@ public class CustomRepository {
     private EntityManager entityManager;
 
     public PgrServer findNearestNode(double lng,double lat) {
-        String sql = "select id,source,target,cost,length from pgrserver "
+        String sql = "select id,source,target,cost,reverse_cost,length from pgrserver "
                 + "order by geom <-> st_setsrid(st_point("
                 + lng 
                 + ","
