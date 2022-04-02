@@ -113,9 +113,9 @@ CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost, r
 
 **Note:**
 
-1. the `length` column has to be in ** meters **(m) units.
+1. the `length` column has to be in **meters**(m) units.
   
-2. the `reverse_cost` value has to be ** greater ** than the `cost` in order for the edge to be 
+2. the `reverse_cost` value has to be **greater than** the `cost` in order for the edge to be 
 considered as a one-way street.
 
 
