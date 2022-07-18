@@ -8,9 +8,11 @@
 package org.pgrserver.graph;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -20,13 +22,15 @@ import org.jgrapht.alg.shortestpath.AStarShortestPath;
 import org.jgrapht.alg.shortestpath.AllDirectedPaths;
 import org.jgrapht.alg.shortestpath.BFSShortestPath;
 import org.jgrapht.alg.shortestpath.BellmanFordShortestPath;
+import org.jgrapht.alg.shortestpath.BidirectionalDijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.ContractionHierarchyBidirectionalDijkstra;
-import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.alg.shortestpath.FloydWarshallShortestPaths;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
 import org.jgrapht.alg.tour.NearestNeighborHeuristicTSP;
 import org.jgrapht.graph.DefaultDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultUndirectedWeightedGraph;
+import org.jgrapht.graph.AbstractBaseGraph;
+import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.traverse.ClosestFirstIterator;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.repository.CustomRepository;
@@ -39,6 +43,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+
 /**
  * 説明：
  *
@@ -47,11 +52,14 @@ import org.springframework.stereotype.Service;
 @Configurable
 public class MainGraph {
         
-    private static DefaultDirectedWeightedGraph<Integer, LabeledWeightedEdge> 
+    private static AbstractBaseGraph<Integer, LabeledWeightedEdge> 
         defaultGraph;
-    
+        
     private static ContractionHierarchyBidirectionalDijkstra<Integer, 
         LabeledWeightedEdge> chbd = null;
+    
+    private static Map<LabeledWeightedEdge,Double> lengthCost = 
+            new HashMap<LabeledWeightedEdge,Double>();
     
     private final Logger logger = LoggerFactory.getLogger(MainGraph.class);
     
@@ -70,15 +78,28 @@ public class MainGraph {
     }
     
    
-    public void createDirectedGraph() {
+    @Value(value = "${graph.directed:true}")
+    private boolean useDirectedGraph;
+    
+    public void createDefaultGraph() {
         logger.info("Creating Graph");
         
         List<PgrServer> pgrData = graphRepository.getGraph();
         
         chbd = null;
         
-        defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
+        if( useDirectedGraph ) {
+            logger.info("Creating Directed Graph");
+            defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
+                    LabeledWeightedEdge>(LabeledWeightedEdge.class);            
+        }
+        else {
+            logger.info("Creating Undirected Graph");
+            defaultGraph = new DefaultUndirectedWeightedGraph<Integer, 
                 LabeledWeightedEdge>(LabeledWeightedEdge.class);
+        }
+        
+        lengthCost.clear();
         
         for(PgrServer p : pgrData) {
             defaultGraph.addVertex((int)p.getSource());
@@ -91,6 +112,22 @@ public class MainGraph {
                     (int)p.getSource(),(int)p.getTarget(),lwe);      
             
             defaultGraph.setEdgeWeight(lwe, p.getCost());
+            lengthCost.put(lwe,p.getLength());
+            
+            /**
+             * setting up one-way streets by creating reverse route for 
+             * normal roads. Applies only when set to use Directed Graph.
+             */
+            if( p.getReverse_cost() <= p.getCost() && useDirectedGraph ) { 
+                LabeledWeightedEdge lweRc = new LabeledWeightedEdge();
+                lweRc.setEdgeId(p.getId()); 
+                
+                defaultGraph.addEdge(
+                        (int)p.getTarget(),(int)p.getSource(),lweRc);      
+                
+                defaultGraph.setEdgeWeight(lweRc, p.getCost());
+                lengthCost.put(lweRc,p.getLength());
+            }
         } 
         
         logger.info("Data received: "+pgrData.size());
@@ -274,7 +311,7 @@ public class MainGraph {
                 
         try {
             List<Integer> list =  
-                    DijkstraShortestPath.findPathBetween(defaultGraph,
+                    BidirectionalDijkstraShortestPath.findPathBetween(defaultGraph,
                     start, end).getVertexList();            
             retVal = convertVerticesToEdges(list);                        
         }
@@ -349,9 +386,16 @@ public class MainGraph {
         }
 
         try {
+             /**
+              * Creating new graph with Length as cost
+              */
+            AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
+                    new  AsWeightedGraph<Integer, LabeledWeightedEdge>
+            (defaultGraph,lengthCost);
+            
             ClosestFirstIterator<Integer, LabeledWeightedEdge> driveDist = 
                     new ClosestFirstIterator<Integer, LabeledWeightedEdge>(
-                            defaultGraph, source, radius);
+                            costGraph, source, radius);
             
             while( driveDist.hasNext() ) {
                 visited.add(driveDist.next());

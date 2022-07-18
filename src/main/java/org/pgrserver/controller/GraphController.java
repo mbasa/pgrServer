@@ -647,7 +647,7 @@ public class GraphController {
             List<PgrsAuth> p = authRepository.findByAuthcode(authcode);
 
             if( p != null && !p.isEmpty()) {
-                mainGraph.createDirectedGraph();                
+                mainGraph.createDefaultGraph();                
                 return "graph has been reloded";
             }
         }

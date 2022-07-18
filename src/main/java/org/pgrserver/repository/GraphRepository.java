@@ -19,6 +19,6 @@ import org.springframework.data.repository.CrudRepository;
  */
 public interface GraphRepository extends CrudRepository<PgrServer, Long> {
 
-    @Query(value="select id,source,target,cost from pgrserver", nativeQuery=true)
+    @Query(value="select id,source,target,cost,reverse_cost,length from pgrserver", nativeQuery=true)
     List<PgrServer>getGraph();
 }

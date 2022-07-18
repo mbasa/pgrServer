@@ -38,7 +38,7 @@ public class CustomRepository {
     private EntityManager entityManager;
 
     public PgrServer findNearestNode(double lng,double lat) {
-        String sql = "select id,source,target,cost from pgrserver "
+        String sql = "select id,source,target,cost,reverse_cost,length from pgrserver "
                 + "order by geom <-> st_setsrid(st_point("
                 + lng 
                 + ","
@@ -50,8 +50,18 @@ public class CustomRepository {
     }
 
     public Object getGraphBnd() {
-        String sql = "select st_asgeojson(st_extent(geom)) from pgrserver ;";
+        //String sql = "select st_asgeojson(st_extent(geom)) from pgrserver ;";
         
+        /**
+         * using the much faster st_estimatedextent to get BND.
+         */
+        String sql = "with tname as (select table_name from "
+                + "information_schema.view_table_usage where "
+                + "view_name = 'pgrserver' limit 1) "
+                + "select st_asgeojson(st_estimatedextent(t.table_name,"
+                + "(select f_geometry_column from geometry_columns where "
+                + "f_table_name = t.table_name))) from tname as t;";
+                      
         return entityManager.createNativeQuery( sql )
                 .getSingleResult();
     }
