@@ -123,8 +123,15 @@ considered as a one-way street.
 Getting the Application
 -----------------------
 
-The *WAR* file of the application can be downloaded from from each stable release
-of this repository. 
+The latest *WAR* file of the application can be downloaded from each stable release
+of this repository, and can either be placed in a Tomcat Application Server or
+run stand alone via the command:
+
+```
+java -jar pgrServer.war
+```
+
+![Alt text](pics/Startup.png?raw=true)
 
 
 
