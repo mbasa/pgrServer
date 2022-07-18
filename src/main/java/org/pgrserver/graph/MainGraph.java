@@ -131,8 +131,14 @@ public class MainGraph {
         } 
         
         logger.info("Data received: "+pgrData.size());
+        this.showUsedMem();                
     }
 
+    public void showUsedMem() {
+        Runtime runtime = Runtime.getRuntime();
+        long memory = runtime.totalMemory() - runtime.freeMemory();
+        logger.info("Memory Usage: "+memory);        
+    }
     
     public List<List<Integer>> tsp(List<List<Double>> inPoints) {        
         List<List<Integer>> retVal = new ArrayList<List<Integer>>();
@@ -199,7 +205,7 @@ public class MainGraph {
             int source = pgrServer.get(v1).getSource();
             int target = pgrServer.get(v2).getTarget();
             
-            List<Integer> dPath = dijkstraSearch(source, target);
+            List<Integer> dPath = dijkstraSearch(source, target, null);
             
             if( dPath != null && !dPath.isEmpty()) {
                 retVal.add( dPath  );
@@ -284,6 +290,7 @@ public class MainGraph {
         try {
             if( chbd == null ) {
                 logger.info("chbDijkstra Thread Pool Size: "+chbThreadPool);
+                this.showUsedMem();
                 
                 ThreadPoolExecutor executor = 
                         (ThreadPoolExecutor) Executors.newFixedThreadPool(
@@ -291,6 +298,8 @@ public class MainGraph {
                 
                 chbd = new ContractionHierarchyBidirectionalDijkstra<Integer, 
                     LabeledWeightedEdge>(defaultGraph,executor);
+                
+                this.showUsedMem();
             }
             
             List<Integer> list =  
@@ -304,16 +313,39 @@ public class MainGraph {
         return retVal;        
     }
     
-    public List<Integer> dijkstraSearch(int start,int end) {
+    public List<Integer> dijkstraSearch(int start,int end, String tableName) {
         List<Integer> retVal = new ArrayList<Integer>();
         if( defaultGraph == null ) 
             return  retVal;
                 
         try {
-            List<Integer> list =  
-                    BidirectionalDijkstraShortestPath.findPathBetween(defaultGraph,
-                    start, end).getVertexList();            
-            retVal = convertVerticesToEdges(list);                        
+            if( tableName == null || tableName.isBlank() ) {
+                List<Integer> list =  
+                    BidirectionalDijkstraShortestPath.findPathBetween(
+                            defaultGraph,start, end).getVertexList();
+                
+                retVal = convertVerticesToEdges(list);
+            }
+            else {
+                AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
+                        new  AsWeightedGraph<Integer, LabeledWeightedEdge>
+                (defaultGraph, lengthCost);
+                        //custRepository.getCostTable(tableName));
+                
+                for(int i=1;i<10;i++) {
+                    LabeledWeightedEdge lwe = new LabeledWeightedEdge();
+                    lwe.setEdgeId(i);    
+
+                    logger.info("Cost EdgeWeight for ID "+lwe.getEdgeId()+": "+costGraph.getEdgeSource(lwe)+","+costGraph.getEdgeTarget(lwe) );
+                    logger.info("Default EdgeWeight for ID "+lwe.getEdgeId()+": "+defaultGraph.getEdgeWeight(lwe) );
+                }
+                
+                List<Integer> list =  
+                        BidirectionalDijkstraShortestPath.findPathBetween(
+                                costGraph,start, end).getVertexList();            
+                    
+                retVal = convertVerticesToEdges(list);
+            }
         }
         catch(Exception e) {
             ;

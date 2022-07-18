@@ -7,13 +7,16 @@
  */
 package org.pgrserver.repository;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.pgrserver.entity.DynamicCost;
 import org.pgrserver.entity.PgrServer;
+import org.pgrserver.graph.LabeledWeightedEdge;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -49,6 +52,29 @@ public class CustomRepository {
                 sql,PgrServer.class).getSingleResult();
     }
 
+    public Map<LabeledWeightedEdge,Double>  getCostTable(String table) {
+        String sql = "select id,cost from "+table;
+        
+        List<?> res = (List<?>) entityManager.createNativeQuery(
+                sql,DynamicCost.class).getResultList();
+        
+        Map<LabeledWeightedEdge,Double> dynamicCost = 
+                new HashMap<LabeledWeightedEdge,Double>();
+        
+        for(Object dc: res) {
+            if( dc instanceof DynamicCost ) {
+                int id = ((DynamicCost) dc).getId();
+                double cost = ((DynamicCost) dc).getCost();
+                
+                LabeledWeightedEdge lwe = new LabeledWeightedEdge();
+                lwe.setEdgeId(id);
+                
+                dynamicCost.put(lwe, cost);
+            }
+        }
+        return dynamicCost;
+    }
+    
     public Object getGraphBnd() {
         //String sql = "select st_asgeojson(st_extent(geom)) from pgrserver ;";
         
