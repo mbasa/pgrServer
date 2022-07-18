@@ -84,7 +84,7 @@ For convenience, a Docker image can be built for this project. There are a few e
 
 ```
 # build the image and spin up the container(s)
-docker-compose build pgrserver
+docker build -t mbasa/pgrserver:latest .
 docker-compose up -d
 ```
 
