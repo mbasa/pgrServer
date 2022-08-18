@@ -14,6 +14,7 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 
+import org.jgrapht.graph.AbstractBaseGraph;
 import org.pgrserver.entity.DynamicCost;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.graph.LabeledWeightedEdge;
@@ -52,32 +53,41 @@ public class CustomRepository {
                 sql,PgrServer.class).getSingleResult();
     }
 
-    public Map<LabeledWeightedEdge,Double>  getCostTable(String table) {
-        String sql = "select id,cost from "+table;
-        
-        List<?> res = (List<?>) entityManager.createNativeQuery(
+    public Map<LabeledWeightedEdge,Double>  getCostTable(
+            AbstractBaseGraph<Integer, LabeledWeightedEdge> graph,String table) {
+        String sql = "select id,source,target,cost from "+table;
+
+        @SuppressWarnings("unchecked")
+        List<DynamicCost> res = (List<DynamicCost>) entityManager.createNativeQuery(
                 sql,DynamicCost.class).getResultList();
-        
+
         Map<LabeledWeightedEdge,Double> dynamicCost = 
                 new HashMap<LabeledWeightedEdge,Double>();
-        
-        for(Object dc: res) {
-            if( dc instanceof DynamicCost ) {
-                int id = ((DynamicCost) dc).getId();
-                double cost = ((DynamicCost) dc).getCost();
-                
-                LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-                lwe.setEdgeId(id);
-                
+
+        for(DynamicCost dc: res) {
+            //int id = dc.getId();
+            int source  = dc.getSource();
+            int target  = dc.getTarget();
+            double cost = dc.getCost();
+
+            if( graph.containsEdge(source, target)) {
+                LabeledWeightedEdge lwe = graph.getEdge(source, target);
+                dynamicCost.put(lwe, cost);
+            }
+            /**
+             * for Bi-Directional data
+             */
+            if( graph.containsEdge(target, source)) {
+                LabeledWeightedEdge lwe = graph.getEdge(target, source);
                 dynamicCost.put(lwe, cost);
             }
         }
         return dynamicCost;
     }
-    
+
     public Object getGraphBnd() {
         //String sql = "select st_asgeojson(st_extent(geom)) from pgrserver ;";
-        
+
         /**
          * using the much faster st_estimatedextent to get BND.
          */
@@ -87,11 +97,11 @@ public class CustomRepository {
                 + "select st_asgeojson(st_estimatedextent(t.table_name,"
                 + "(select f_geometry_column from geometry_columns where "
                 + "f_table_name = t.table_name))) from tname as t;";
-                      
+
         return entityManager.createNativeQuery( sql )
                 .getSingleResult();
     }
-    
+
     public Object createJsonDriveDistPoly(Set<Integer> list) {
         String listStr = list.toString();
         listStr = listStr.replace("[", "(");
@@ -130,7 +140,7 @@ public class CustomRepository {
             .replace("}", "")
             .replace("\"", "'")
             .replace(":",",");
-            
+
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -182,19 +192,19 @@ public class CustomRepository {
         if( !list.isEmpty() ) {
             for(int i=0;i<list.size()-1;i++) {
                 if( !list.get(i).isEmpty()) {
-                    
+
                     if(retVal.length() > 0 )
                         retVal.append(",");
-                    
+
                     retVal.append((String)createJsonRouteResponse(
                             list.get(i),i+1));                    
                 }
             }
             if( !list.get(list.size()-1).isEmpty() ) {
-                
+
                 if(retVal.length() > 0 )
                     retVal.append(",");
-                
+
                 retVal.append((String)createJsonRouteResponse(list.get(
                         list.size()-1),list.size()));
             }
@@ -203,18 +213,18 @@ public class CustomRepository {
 
         return retVal.toString();        
     }
-    
+
     public String createJsonCollectionResponse(List<List<Integer>> list,
             List<Map<String,Object>> additionalAttrib, boolean withHeader,
             int firstFid) {
 
         StringBuffer retVal = new StringBuffer();
         int fidCounter = 0;
-        
+
         if( firstFid > 0 ) {
             fidCounter = firstFid;
         }
-        
+
         if( withHeader ) {
             retVal.append("{\"type\":\"FeatureCollection\",");
             retVal.append("\"features\":[");
@@ -224,29 +234,29 @@ public class CustomRepository {
             for(int i=0;i<list.size()-1;i++) {
                 if( !list.get(i).isEmpty()) {
                     fidCounter++;
-                    
+
                     if(retVal.length() > 0 )
                         retVal.append(",");
-                        
+
                     retVal.append((String)createJsonRouteResponse(
                             list.get(i),fidCounter,additionalAttrib.get(i)));                    
                 }
             }
             if( !list.get(list.size()-1).isEmpty() ) {
                 fidCounter++;
-                
+
                 if(retVal.length() > 0 )
                     retVal.append(",");
-                
+
                 retVal.append((String)createJsonRouteResponse(list.get(
-                    list.size()-1),fidCounter,
-                    additionalAttrib.get(list.size()-1)));
+                        list.size()-1),fidCounter,
+                        additionalAttrib.get(list.size()-1)));
             }
         }
         if( withHeader ) {
             retVal.append("]}");
         }
-        
+
         return retVal.toString();        
     }
 }
