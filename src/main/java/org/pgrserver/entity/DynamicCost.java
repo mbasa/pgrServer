@@ -19,6 +19,8 @@ public class DynamicCost {
 
     @Id
     private int id;
+    private int source;
+    private int target;
     private double cost;
     
     /**
@@ -54,6 +56,34 @@ public class DynamicCost {
      */
     public void setCost(double cost) {
         this.cost = cost;
+    }
+
+    /**
+     * @return source を取得する
+     */
+    public int getSource() {
+        return source;
+    }
+
+    /**
+     * @param source source を設定する
+     */
+    public void setSource(int source) {
+        this.source = source;
+    }
+
+    /**
+     * @return target を取得する
+     */
+    public int getTarget() {
+        return target;
+    }
+
+    /**
+     * @param target target を設定する
+     */
+    public void setTarget(int target) {
+        this.target = target;
     }
 
 }

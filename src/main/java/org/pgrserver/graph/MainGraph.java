@@ -106,11 +106,11 @@ public class MainGraph {
             defaultGraph.addVertex((int)p.getTarget());
 
             LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-            lwe.setEdgeId(p.getId());                      
+            lwe.setEdgeId(p.getId());                 
              
             defaultGraph.addEdge(
                     (int)p.getSource(),(int)p.getTarget(),lwe);      
-            
+
             defaultGraph.setEdgeWeight(lwe, p.getCost());
             lengthCost.put(lwe,p.getLength());
             
@@ -233,7 +233,7 @@ public class MainGraph {
         return arrList;
     }
     
-    public List<Integer> astarSearch(int start,int end) {
+    public List<Integer> astarSearch(int start,int end,String tableName) {
         AStarAdmissibleHeuristic<Integer> heuristic = 
                 new AStarAdmissibleHeuristic<Integer>() {
             @Override
@@ -241,20 +241,37 @@ public class MainGraph {
                 return 5d;
             }
         };
-        
-        AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
-           new AStarShortestPath<Integer,LabeledWeightedEdge>(defaultGraph, 
-                   heuristic);
-
+                
         List<Integer> retVal = new ArrayList<Integer>();
         if( defaultGraph == null ) 
             return  retVal;
                 
         try {
-            List<Integer> list =  astarShortestPath.getPath(
+            if( tableName == null || tableName.isBlank() ) {
+                AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
+                        new AStarShortestPath<Integer,LabeledWeightedEdge>(
+                                defaultGraph, heuristic);
+
+                List<Integer> list =  astarShortestPath.getPath(
                     Integer.valueOf(start),
                     Integer.valueOf(end)).getVertexList();
-            retVal = convertVerticesToEdges(list);
+                retVal = convertVerticesToEdges(list);
+            }
+            else {
+                AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
+                        new  AsWeightedGraph<Integer, LabeledWeightedEdge>
+                        (defaultGraph,custRepository.getCostTable(defaultGraph,
+                                tableName));
+                
+                AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
+                        new AStarShortestPath<Integer,LabeledWeightedEdge>(
+                                costGraph, heuristic);
+                
+                List<Integer> list =  astarShortestPath.getPath(
+                        Integer.valueOf(start),
+                        Integer.valueOf(end)).getVertexList();
+                    retVal = convertVerticesToEdges(list);
+            }
         }
         catch(Exception e) {
             ;
@@ -317,7 +334,7 @@ public class MainGraph {
         List<Integer> retVal = new ArrayList<Integer>();
         if( defaultGraph == null ) 
             return  retVal;
-                
+     
         try {
             if( tableName == null || tableName.isBlank() ) {
                 List<Integer> list =  
@@ -329,17 +346,9 @@ public class MainGraph {
             else {
                 AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
                         new  AsWeightedGraph<Integer, LabeledWeightedEdge>
-                (defaultGraph, lengthCost);
-                        //custRepository.getCostTable(tableName));
-                
-                for(int i=1;i<10;i++) {
-                    LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-                    lwe.setEdgeId(i);    
-
-                    logger.info("Cost EdgeWeight for ID "+lwe.getEdgeId()+": "+costGraph.getEdgeSource(lwe)+","+costGraph.getEdgeTarget(lwe) );
-                    logger.info("Default EdgeWeight for ID "+lwe.getEdgeId()+": "+defaultGraph.getEdgeWeight(lwe) );
-                }
-                
+                        (defaultGraph,custRepository.getCostTable(defaultGraph,
+                                tableName));
+                               
                 List<Integer> list =  
                         BidirectionalDijkstraShortestPath.findPathBetween(
                                 costGraph,start, end).getVertexList();            
