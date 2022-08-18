@@ -106,11 +106,11 @@ public class MainGraph {
             defaultGraph.addVertex((int)p.getTarget());
 
             LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-            lwe.setEdgeId(p.getId());                      
+            lwe.setEdgeId(p.getId());                 
              
             defaultGraph.addEdge(
                     (int)p.getSource(),(int)p.getTarget(),lwe);      
-            
+
             defaultGraph.setEdgeWeight(lwe, p.getCost());
             lengthCost.put(lwe,p.getLength());
             
@@ -131,8 +131,14 @@ public class MainGraph {
         } 
         
         logger.info("Data received: "+pgrData.size());
+        this.showUsedMem();                
     }
 
+    public void showUsedMem() {
+        Runtime runtime = Runtime.getRuntime();
+        long memory = runtime.totalMemory() - runtime.freeMemory();
+        logger.info("Memory Usage: "+memory);        
+    }
     
     public List<List<Integer>> tsp(List<List<Double>> inPoints) {        
         List<List<Integer>> retVal = new ArrayList<List<Integer>>();
@@ -199,7 +205,7 @@ public class MainGraph {
             int source = pgrServer.get(v1).getSource();
             int target = pgrServer.get(v2).getTarget();
             
-            List<Integer> dPath = dijkstraSearch(source, target);
+            List<Integer> dPath = dijkstraSearch(source, target, null);
             
             if( dPath != null && !dPath.isEmpty()) {
                 retVal.add( dPath  );
@@ -227,7 +233,7 @@ public class MainGraph {
         return arrList;
     }
     
-    public List<Integer> astarSearch(int start,int end) {
+    public List<Integer> astarSearch(int start,int end,String tableName) {
         AStarAdmissibleHeuristic<Integer> heuristic = 
                 new AStarAdmissibleHeuristic<Integer>() {
             @Override
@@ -235,20 +241,37 @@ public class MainGraph {
                 return 5d;
             }
         };
-        
-        AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
-           new AStarShortestPath<Integer,LabeledWeightedEdge>(defaultGraph, 
-                   heuristic);
-
+                
         List<Integer> retVal = new ArrayList<Integer>();
         if( defaultGraph == null ) 
             return  retVal;
                 
         try {
-            List<Integer> list =  astarShortestPath.getPath(
+            if( tableName == null || tableName.isBlank() ) {
+                AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
+                        new AStarShortestPath<Integer,LabeledWeightedEdge>(
+                                defaultGraph, heuristic);
+
+                List<Integer> list =  astarShortestPath.getPath(
                     Integer.valueOf(start),
                     Integer.valueOf(end)).getVertexList();
-            retVal = convertVerticesToEdges(list);
+                retVal = convertVerticesToEdges(list);
+            }
+            else {
+                AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
+                        new  AsWeightedGraph<Integer, LabeledWeightedEdge>
+                        (defaultGraph,custRepository.getCostTable(defaultGraph,
+                                tableName));
+                
+                AStarShortestPath<Integer,LabeledWeightedEdge> astarShortestPath = 
+                        new AStarShortestPath<Integer,LabeledWeightedEdge>(
+                                costGraph, heuristic);
+                
+                List<Integer> list =  astarShortestPath.getPath(
+                        Integer.valueOf(start),
+                        Integer.valueOf(end)).getVertexList();
+                    retVal = convertVerticesToEdges(list);
+            }
         }
         catch(Exception e) {
             ;
@@ -284,6 +307,7 @@ public class MainGraph {
         try {
             if( chbd == null ) {
                 logger.info("chbDijkstra Thread Pool Size: "+chbThreadPool);
+                this.showUsedMem();
                 
                 ThreadPoolExecutor executor = 
                         (ThreadPoolExecutor) Executors.newFixedThreadPool(
@@ -291,6 +315,8 @@ public class MainGraph {
                 
                 chbd = new ContractionHierarchyBidirectionalDijkstra<Integer, 
                     LabeledWeightedEdge>(defaultGraph,executor);
+                
+                this.showUsedMem();
             }
             
             List<Integer> list =  
@@ -304,16 +330,31 @@ public class MainGraph {
         return retVal;        
     }
     
-    public List<Integer> dijkstraSearch(int start,int end) {
+    public List<Integer> dijkstraSearch(int start,int end, String tableName) {
         List<Integer> retVal = new ArrayList<Integer>();
         if( defaultGraph == null ) 
             return  retVal;
-                
+     
         try {
-            List<Integer> list =  
-                    BidirectionalDijkstraShortestPath.findPathBetween(defaultGraph,
-                    start, end).getVertexList();            
-            retVal = convertVerticesToEdges(list);                        
+            if( tableName == null || tableName.isBlank() ) {
+                List<Integer> list =  
+                    BidirectionalDijkstraShortestPath.findPathBetween(
+                            defaultGraph,start, end).getVertexList();
+                
+                retVal = convertVerticesToEdges(list);
+            }
+            else {
+                AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
+                        new  AsWeightedGraph<Integer, LabeledWeightedEdge>
+                        (defaultGraph,custRepository.getCostTable(defaultGraph,
+                                tableName));
+                               
+                List<Integer> list =  
+                        BidirectionalDijkstraShortestPath.findPathBetween(
+                                costGraph,start, end).getVertexList();            
+                    
+                retVal = convertVerticesToEdges(list);
+            }
         }
         catch(Exception e) {
             ;

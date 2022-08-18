@@ -276,7 +276,8 @@ public class GraphController {
             @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
             @RequestParam @ApiParam(required=true,value="Target Node ID") int target) { 
 
-        List<Integer> retVal = mainGraph.dijkstraSearch(source, target);
+        List<Integer> retVal = mainGraph.dijkstraSearch(source, target,null);
+        
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
@@ -316,13 +317,57 @@ public class GraphController {
             target = pgrs.getTarget();
         }
 
-        List<Integer> retVal = mainGraph.dijkstraSearch(source, target);
+        List<Integer> retVal = mainGraph.dijkstraSearch(source, target,null);
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
         }
         return (String)customRepo.createJsonRouteResponse(retVal,1);
     }
 
+    /**
+     * 
+     * Dijkstra with Latitude,Longitude parameters
+     * (for dense networks)
+     * 
+     * @param source_x
+     * @param source_y
+     * @param target_x
+     * @param target_y
+     * @param tableName
+     * @return GeoJson
+     */
+    @GetMapping(value="/latlng/dijkstra_dyncost", 
+            produces = MediaType.APPLICATION_JSON_VALUE )
+    public String getRouteXYDijkstraDynCost(
+            @RequestParam @ApiParam(required=true,value="Source Longitude") double source_x,
+            @RequestParam @ApiParam(required=true,value="Source Latitude" ) double source_y,
+            @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
+            @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y,
+            @RequestParam @ApiParam(required=true,value="Cost Table Name" ) String tableName) 
+    {
+
+        int source = 0,target = 0;
+        PgrServer pgrs;
+
+        pgrs = customRepo.findNearestNode(source_x, source_y);
+        if( pgrs != null ) {
+            source = pgrs.getSource();
+        }
+
+        pgrs = customRepo.findNearestNode(target_x, target_y);
+        if( pgrs != null ) {
+            target = pgrs.getTarget();
+        }
+
+        List<Integer> retVal = mainGraph.dijkstraSearch(source, target,
+                tableName);
+        
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
+    }
+    
     /**
      * 
      * A-Star with node parameters
@@ -336,7 +381,7 @@ public class GraphController {
     public String getRouteAstar(
             @RequestParam @ApiParam(required=true,value="Source Node ID") int source,
             @RequestParam @ApiParam(required=true,value="Target Node ID") int target) {         
-        List<Integer> retVal = mainGraph.astarSearch(source, target);
+        List<Integer> retVal = mainGraph.astarSearch(source, target,null);
 
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
@@ -377,7 +422,49 @@ public class GraphController {
             target = pgrs.getTarget();
         }
 
-        List<Integer> retVal = mainGraph.astarSearch(source, target);
+        List<Integer> retVal = mainGraph.astarSearch(source, target,null);
+
+        if( retVal == null || retVal.isEmpty() ) {
+            return this.noRouteMsg;
+        }
+        return (String)customRepo.createJsonRouteResponse(retVal,1);
+    }
+    
+    /**
+     * 
+     * A-Star with Latitude,Longitude parameters and Dynamic Cost Table
+     * (for dense networks)
+     * 
+     * @param source_x
+     * @param source_y
+     * @param target_x
+     * @param target_y
+     * @return GeoJson
+     */
+    @GetMapping(value="/latlng/astar_dyncost",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public String getRouteXYAstarDynCost(
+            @RequestParam @ApiParam(required=true,value="Source Longitude") double source_x,
+            @RequestParam @ApiParam(required=true,value="Source Latitude" ) double source_y,
+            @RequestParam @ApiParam(required=true,value="Target Longitude") double target_x,
+            @RequestParam @ApiParam(required=true,value="Target Latitude" ) double target_y,
+            @RequestParam @ApiParam(required=true,value="Cost Table Name" ) String tableName) 
+    {
+
+        int source = 0,target = 0;
+        PgrServer pgrs;
+
+        pgrs = customRepo.findNearestNode(source_x, source_y);
+        if( pgrs != null ) {
+            source = pgrs.getSource();
+        }
+
+        pgrs = customRepo.findNearestNode(target_x, target_y);
+        if( pgrs != null ) {
+            target = pgrs.getTarget();
+        }
+
+        List<Integer> retVal = mainGraph.astarSearch(source, target,tableName);
 
         if( retVal == null || retVal.isEmpty() ) {
             return this.noRouteMsg;
