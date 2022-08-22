@@ -58,7 +58,10 @@ When to use pgrServer
 * When performance is paramount. pgrServer can return routes within ~50 kilometer searches in milliseconds even in very dense networks.   
 
 
-* When the cost (weight) of the graph is not dynamic. pgrServer can be used when the cost does not have to be computed at each request, since pgrServer only reads the cost whenever the graph is loaded. pgrServer can be forced to re-read the graph for routes that have semi-dynamic costs.
+* When the cost (weight) of the graph is dynamic. PgrServer can be used to load
+and link updated costs residing in a table or view into an existing graph without 
+having to reload the graph. Also, the data in the table or view does not have to include all the costs of the graph, only the changed costs, since pgrServer will use the existing cost if no link can be established.
+
 
  
 Requirements
@@ -104,8 +107,8 @@ Preparing the Topology
 * Ensure that there is an index on an __unique id__ field, an index on the __source__ field, an index on the __target__ field, and a spatial index on the __geometry__ field of the topology table.
 
 
-* Create a View Table __pgrserver__ based on the topology table that will contain the following fields:
-id, source, target, cost, reverse_cost, length, geom.
+* Create a View or Table __pgrserver__ based on the topology table that will contain the following fields:
+`id`, `source`, `target`, `cost`, `reverse_cost`, `length`, `geom`.
 
 ```sql
 CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost, reverse_cost, length, wkb_geometry AS geom FROM kanto ;
@@ -164,10 +167,30 @@ http://localhost:8080/pgrServer/
 
 ![Alt text](pics/Swagger.png?raw=true)
 
+Dynamic Costs
+-------------
+
+PgrServer can use dynamic costs from an existing table or view in PostgreSQL, and
+link it into the graph without having to do a reload to create truly dynamic
+routes. The table or view must contain the following fields: `id`, `source`, `target`,
+`cost`.
+
+```sql
+CREATE VIEW dynamic_cost AS select id,source,target,length + 1000 as cost from pgrserver ;
+```
+
+This table or view name can be passed as a parameter for the following APIs:
+
+* dijkstra_dyncost
+* astar_dyncost
+
+![Alt text](pics/Dynamic_Cost.png?raw=true)
+
+
 Reload the Graph
 ---------------
 
-To reload the graph if the __cost__ has changed, send a POST request with the authcode parameter value. The authcode value can be set by updating the installed pgrs_auth table in the PostgreSQL database.
+To reload the graph if the complete __cost__ has changed, send a POST request with the authcode parameter value. The authcode value can be set by updating the installed pgrs_auth table in the PostgreSQL database.
 
 ```shell
 curl -X POST -F "authcode=abc12345" "http://localhost:8080/pgrServer/api/graphreload"
