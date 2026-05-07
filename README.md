@@ -31,6 +31,7 @@ As of this version, the following search algorithms are included as a service:
 * Dijkstra ( for dense networks )
 * A-Star ( for dense networks )
 * ContractionHierarchyBidirectionalDijkstra ( for dense networks * )
+* K-Shortest Paths ( returns up to K alternative paths via edge penalization )
 * ClosestFirstIterator ( for Driving Distance Isochrone creation )
 * NearestNeighborHeuristicTSP ( for Traveling Salesperson Problem )
 * All Directed Paths ( for sparse networks or short distance search)
@@ -185,6 +186,37 @@ This table or view name can be passed as a parameter for the following APIs:
 * astar_dyncost
 
 ![Alt text](pics/Dynamic_Cost.png?raw=true)
+
+
+K-Shortest Paths
+----------------
+
+pgrServer supports K-Shortest Paths, which returns up to K alternative routes
+between two points. The first path is the true shortest path (Dijkstra). Each
+subsequent path is found by penalizing the edges used in the previous path and
+re-running Dijkstra, encouraging genuinely different routes. The penalty
+multiplier is configurable via `ksp.penalty.factor` in `application.properties`
+(default: `10.0`).
+
+Two endpoints are available, accepting either node IDs or latitude/longitude
+coordinates:
+
+| Endpoint | Parameters |
+|---|---|
+| `GET /api/node/kShortestPath` | `source`, `target`, `k` (optional) |
+| `GET /api/latlng/kShortestPath` | `source_x`, `source_y`, `target_x`, `target_y`, `k` (optional) |
+
+The `k` parameter controls how many paths are returned. It defaults to **3**
+and is capped at a maximum of **10**. The response is a GeoJSON
+`FeatureCollection` with one `Feature` per path.
+
+```shell
+# Example: 3 alternative paths between two coordinates (default k)
+curl "http://localhost:8080/pgrServer/api/latlng/kShortestPath?source_x=139.620139631&source_y=35.710788822&target_x=139.620928086&target_y=35.699183061"
+
+# Example: up to 5 paths
+curl "http://localhost:8080/pgrServer/api/latlng/kShortestPath?source_x=139.620139631&source_y=35.710788822&target_x=139.620928086&target_y=35.699183061&k=5"
+```
 
 
 Reload the Graph

@@ -189,29 +189,21 @@ public class CustomRepository {
         retVal.append("{\"type\":\"FeatureCollection\",");
         retVal.append("\"features\":[");
 
+        boolean firstFeature = true;
         if( !list.isEmpty() ) {
-            for(int i=0;i<list.size()-1;i++) {
+            for(int i=0;i<list.size();i++) {
                 if( !list.get(i).isEmpty()) {
-
-                    if(retVal.length() > 0 )
+                    if( !firstFeature )
                         retVal.append(",");
-
                     retVal.append((String)createJsonRouteResponse(
-                            list.get(i),i+1));                    
+                            list.get(i),i+1));
+                    firstFeature = false;
                 }
-            }
-            if( !list.get(list.size()-1).isEmpty() ) {
-
-                if(retVal.length() > 0 )
-                    retVal.append(",");
-
-                retVal.append((String)createJsonRouteResponse(list.get(
-                        list.size()-1),list.size()));
             }
         }
         retVal.append("]}");
 
-        return retVal.toString();        
+        return retVal.toString();
     }
 
     public String createJsonCollectionResponse(List<List<Integer>> list,
@@ -230,27 +222,17 @@ public class CustomRepository {
             retVal.append("\"features\":[");
         }
 
+        boolean firstFeature = true;
         if( !list.isEmpty() ) {
-            for(int i=0;i<list.size()-1;i++) {
+            for(int i=0;i<list.size();i++) {
                 if( !list.get(i).isEmpty()) {
                     fidCounter++;
-
-                    if(retVal.length() > 0 )
+                    if( !firstFeature )
                         retVal.append(",");
-
                     retVal.append((String)createJsonRouteResponse(
-                            list.get(i),fidCounter,additionalAttrib.get(i)));                    
+                            list.get(i),fidCounter,additionalAttrib.get(i)));
+                    firstFeature = false;
                 }
-            }
-            if( !list.get(list.size()-1).isEmpty() ) {
-                fidCounter++;
-
-                if(retVal.length() > 0 )
-                    retVal.append(",");
-
-                retVal.append((String)createJsonRouteResponse(list.get(
-                        list.size()-1),fidCounter,
-                        additionalAttrib.get(list.size()-1)));
             }
         }
         if( withHeader ) {

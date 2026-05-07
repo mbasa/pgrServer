@@ -295,6 +295,9 @@ public class MainGraph {
         return retVal;        
     }
         
+    @Value(value = "${ksp.penalty.factor:10.0}")
+    private double kspPenaltyFactor;
+
     @Value(value = "${chbDijkstra.thread.pool:7}")
     private int chbThreadPool;
     
@@ -449,6 +452,44 @@ public class MainGraph {
         return visited;
     }
     
+    public List<List<Integer>> kShortestPath(int start, int end, int k) {
+        List<List<Integer>> retVal = new ArrayList<>();
+        if (defaultGraph == null)
+            return retVal;
+
+        try {
+            Map<LabeledWeightedEdge, Double> penalizedWeights = new HashMap<>();
+
+            for (int i = 0; i < k; i++) {
+                AsWeightedGraph<Integer, LabeledWeightedEdge> weightedGraph =
+                        new AsWeightedGraph<>(defaultGraph, penalizedWeights);
+
+                GraphPath<Integer, LabeledWeightedEdge> path =
+                        BidirectionalDijkstraShortestPath.findPathBetween(
+                                weightedGraph, start, end);
+
+                if (path == null)
+                    break;
+
+                List<Integer> edgeIds = convertVerticesToEdges(path.getVertexList());
+                if (edgeIds.isEmpty())
+                    break;
+
+                retVal.add(edgeIds);
+
+                for (LabeledWeightedEdge edge : path.getEdgeList()) {
+                    double w = penalizedWeights.getOrDefault(
+                            edge, defaultGraph.getEdgeWeight(edge));
+                    penalizedWeights.put(edge, w * kspPenaltyFactor);
+                }
+            }
+        }
+        catch (Exception e) {
+            ;
+        }
+        return retVal;
+    }
+
     private List<Integer> convertVerticesToEdges(List<Integer> list) {
         List<Integer> retVal = new ArrayList<Integer>();
         
