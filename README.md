@@ -218,6 +218,8 @@ curl "http://localhost:8080/pgrServer/api/latlng/kShortestPath?source_x=139.6201
 curl "http://localhost:8080/pgrServer/api/latlng/kShortestPath?source_x=139.620139631&source_y=35.710788822&target_x=139.620928086&target_y=35.699183061&k=5"
 ```
 
+For more details, refer to the [K-Shortest Path in pgrServer](https://github.com/mbasa/pgrServer/wiki/K%E2%80%90Shortest-Path-in-pgrServer) wiki page.
+
 
 Reload the Graph
 ---------------
