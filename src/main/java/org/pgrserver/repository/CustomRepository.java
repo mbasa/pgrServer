@@ -152,8 +152,8 @@ public class CustomRepository {
                 + "'fid',"+gid+attrib+"),"
                 + "'geometry',CAST(st_asgeojson(t.geom) as json)"
                 + ") as TEXT) as st_json "
-                + "from (select st_union(geom) as geom from pgrserver"
-                + " where id in " 
+                + "from (select st_linemerge(st_union(geom)) as geom from pgrserver"
+                + " where id in "
                 + listStr
                 + ") t;";
 
@@ -174,8 +174,8 @@ public class CustomRepository {
                 + "'fid',"+gid+"),"
                 + "'geometry',CAST(st_asgeojson(t.geom) as json)"
                 + ") as TEXT) as st_json "
-                + "from (select st_union(geom) as geom from pgrserver"
-                + " where id in " 
+                + "from (select st_linemerge(st_union(geom)) as geom from pgrserver"
+                + " where id in "
                 + listStr
                 + ") t;";
 
