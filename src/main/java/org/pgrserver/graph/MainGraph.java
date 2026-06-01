@@ -15,7 +15,10 @@ import java.util.Set;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
@@ -55,12 +58,9 @@ public class MainGraph {
     private static AbstractBaseGraph<Integer, LabeledWeightedEdge> 
         defaultGraph;
         
-    private static ContractionHierarchyBidirectionalDijkstra<Integer, 
+    private static ContractionHierarchyBidirectionalDijkstra<Integer,
         LabeledWeightedEdge> chbd = null;
-    
-    private static Map<LabeledWeightedEdge,Double> lengthCost = 
-            new HashMap<LabeledWeightedEdge,Double>();
-    
+
     private final Logger logger = LoggerFactory.getLogger(MainGraph.class);
     
     @Autowired
@@ -81,57 +81,58 @@ public class MainGraph {
     @Value(value = "${graph.directed:true}")
     private boolean useDirectedGraph;
     
+    @Transactional(readOnly = true)
     public void createDefaultGraph() {
         logger.info("Creating Graph");
-        
-        List<PgrServer> pgrData = graphRepository.getGraph();
-        
+
         chbd = null;
-        
+
         if( useDirectedGraph ) {
             logger.info("Creating Directed Graph");
-            defaultGraph = new DefaultDirectedWeightedGraph<Integer, 
-                    LabeledWeightedEdge>(LabeledWeightedEdge.class);            
+            defaultGraph = new DefaultDirectedWeightedGraph<Integer,
+                    LabeledWeightedEdge>(LabeledWeightedEdge.class);
         }
         else {
             logger.info("Creating Undirected Graph");
-            defaultGraph = new DefaultUndirectedWeightedGraph<Integer, 
+            defaultGraph = new DefaultUndirectedWeightedGraph<Integer,
                 LabeledWeightedEdge>(LabeledWeightedEdge.class);
         }
-        
-        lengthCost.clear();
-        
-        for(PgrServer p : pgrData) {
-            defaultGraph.addVertex((int)p.getSource());
-            defaultGraph.addVertex((int)p.getTarget());
 
-            LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-            lwe.setEdgeId(p.getId());                 
-             
-            defaultGraph.addEdge(
-                    (int)p.getSource(),(int)p.getTarget(),lwe);      
+        AtomicLong count = new AtomicLong(0);
 
-            defaultGraph.setEdgeWeight(lwe, p.getCost());
-            lengthCost.put(lwe,p.getLength());
-            
-            /**
-             * setting up one-way streets by creating reverse route for 
-             * normal roads. Applies only when set to use Directed Graph.
-             */
-            if( p.getReverse_cost() <= p.getCost() && useDirectedGraph ) { 
-                LabeledWeightedEdge lweRc = new LabeledWeightedEdge();
-                lweRc.setEdgeId(p.getId()); 
-                
+        try (Stream<PgrServer> stream = graphRepository.streamGraph()) {
+            stream.forEach(p -> {
+                defaultGraph.addVertex((int)p.getSource());
+                defaultGraph.addVertex((int)p.getTarget());
+
+                LabeledWeightedEdge lwe = new LabeledWeightedEdge();
+                lwe.setEdgeId(p.getId());
+                lwe.setLength(p.getLength());
+
                 defaultGraph.addEdge(
-                        (int)p.getTarget(),(int)p.getSource(),lweRc);      
-                
-                defaultGraph.setEdgeWeight(lweRc, p.getCost());
-                lengthCost.put(lweRc,p.getLength());
-            }
-        } 
-        
-        logger.info("Data received: "+pgrData.size());
-        this.showUsedMem();                
+                        (int)p.getSource(),(int)p.getTarget(),lwe);
+                defaultGraph.setEdgeWeight(lwe, p.getCost());
+
+                /**
+                 * setting up one-way streets by creating reverse route for
+                 * normal roads. Applies only when set to use Directed Graph.
+                 */
+                if( p.getReverse_cost() <= p.getCost() && useDirectedGraph ) {
+                    LabeledWeightedEdge lweRc = new LabeledWeightedEdge();
+                    lweRc.setEdgeId(p.getId());
+                    lweRc.setLength(p.getLength());
+
+                    defaultGraph.addEdge(
+                            (int)p.getTarget(),(int)p.getSource(),lweRc);
+                    defaultGraph.setEdgeWeight(lweRc, p.getCost());
+                }
+
+                count.incrementAndGet();
+            });
+        }
+
+        logger.info("Data received: " + count.get());
+        this.showUsedMem();
     }
 
     public void showUsedMem() {
@@ -430,12 +431,9 @@ public class MainGraph {
         }
 
         try {
-             /**
-              * Creating new graph with Length as cost
-              */
-            AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph = 
-                    new  AsWeightedGraph<Integer, LabeledWeightedEdge>
-            (defaultGraph,lengthCost);
+            AsWeightedGraph<Integer, LabeledWeightedEdge> costGraph =
+                    new AsWeightedGraph<Integer, LabeledWeightedEdge>(
+                            defaultGraph, e -> e.getLength(), false, false);
             
             ClosestFirstIterator<Integer, LabeledWeightedEdge> driveDist = 
                     new ClosestFirstIterator<Integer, LabeledWeightedEdge>(
