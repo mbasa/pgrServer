@@ -16,9 +16,10 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Stream;
 
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
@@ -37,7 +38,6 @@ import org.jgrapht.graph.AsWeightedGraph;
 import org.jgrapht.traverse.ClosestFirstIterator;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.repository.CustomRepository;
-import org.pgrserver.repository.GraphRepository;
 import org.pgrserver.util.DistanceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,10 +64,13 @@ public class MainGraph {
     private final Logger logger = LoggerFactory.getLogger(MainGraph.class);
     
     @Autowired
-    GraphRepository graphRepository;
+    CustomRepository custRepository;
 
     @Autowired
-    CustomRepository custRepository;
+    JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    PlatformTransactionManager transactionManager;
     
 
     /**
@@ -81,7 +84,6 @@ public class MainGraph {
     @Value(value = "${graph.directed:true}")
     private boolean useDirectedGraph;
     
-    @Transactional(readOnly = true)
     public void createDefaultGraph() {
         logger.info("Creating Graph");
 
@@ -100,36 +102,47 @@ public class MainGraph {
 
         AtomicLong count = new AtomicLong(0);
 
-        try (Stream<PgrServer> stream = graphRepository.streamGraph()) {
-            stream.forEach(p -> {
-                defaultGraph.addVertex((int)p.getSource());
-                defaultGraph.addVertex((int)p.getTarget());
+        TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
+        txTemplate.setReadOnly(true);
+        txTemplate.execute(status -> {
+            jdbcTemplate.query(conn -> {
+                java.sql.PreparedStatement ps = conn.prepareStatement(
+                    "select id, source, target, cost, reverse_cost, length from pgrserver",
+                    java.sql.ResultSet.TYPE_FORWARD_ONLY,
+                    java.sql.ResultSet.CONCUR_READ_ONLY);
+                ps.setFetchSize(1000);
+                return ps;
+            }, rs -> {
+                int source = rs.getInt("source");
+                int target = rs.getInt("target");
+                double cost = rs.getDouble("cost");
+                double reverseCost = rs.getDouble("reverse_cost");
+                double length = rs.getDouble("length");
+                int id = rs.getInt("id");
+
+                defaultGraph.addVertex(source);
+                defaultGraph.addVertex(target);
 
                 LabeledWeightedEdge lwe = new LabeledWeightedEdge();
-                lwe.setEdgeId(p.getId());
-                lwe.setLength(p.getLength());
+                lwe.setEdgeId(id);
+                lwe.setLength(length);
 
-                defaultGraph.addEdge(
-                        (int)p.getSource(),(int)p.getTarget(),lwe);
-                defaultGraph.setEdgeWeight(lwe, p.getCost());
+                defaultGraph.addEdge(source, target, lwe);
+                defaultGraph.setEdgeWeight(lwe, cost);
 
-                /**
-                 * setting up one-way streets by creating reverse route for
-                 * normal roads. Applies only when set to use Directed Graph.
-                 */
-                if( p.getReverse_cost() <= p.getCost() && useDirectedGraph ) {
+                if( reverseCost <= cost && useDirectedGraph ) {
                     LabeledWeightedEdge lweRc = new LabeledWeightedEdge();
-                    lweRc.setEdgeId(p.getId());
-                    lweRc.setLength(p.getLength());
+                    lweRc.setEdgeId(id);
+                    lweRc.setLength(length);
 
-                    defaultGraph.addEdge(
-                            (int)p.getTarget(),(int)p.getSource(),lweRc);
-                    defaultGraph.setEdgeWeight(lweRc, p.getCost());
+                    defaultGraph.addEdge(target, source, lweRc);
+                    defaultGraph.setEdgeWeight(lweRc, cost);
                 }
 
                 count.incrementAndGet();
             });
-        }
+            return null;
+        });
 
         logger.info("Data received: " + count.get());
         this.showUsedMem();

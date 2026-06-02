@@ -1,12 +1,12 @@
 package org.pgrserver;
 
-import javax.annotation.PostConstruct;
-
 import org.pgrserver.graph.MainGraph;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.event.EventListener;
 
 @SpringBootApplication
 @ComponentScan("org.pgrserver") 
@@ -19,8 +19,8 @@ public class PgrServerApplication {
 	@Autowired
 	MainGraph mainGraph;
 	
-	@PostConstruct
-	private void populateGraph() {
+	@EventListener(ApplicationReadyEvent.class)
+	public void populateGraph() {
 	    mainGraph.createDefaultGraph();
 	}
 }
