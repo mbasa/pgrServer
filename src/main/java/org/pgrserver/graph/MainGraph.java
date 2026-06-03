@@ -17,9 +17,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.pgrserver.repository.GraphLoadRepository;
 import org.jgrapht.GraphPath;
 import org.jgrapht.alg.interfaces.AStarAdmissibleHeuristic;
 import org.jgrapht.alg.shortestpath.AStarShortestPath;
@@ -67,7 +67,7 @@ public class MainGraph {
     CustomRepository custRepository;
 
     @Autowired
-    JdbcTemplate jdbcTemplate;
+    GraphLoadRepository graphLoadRepository;
 
     @Autowired
     PlatformTransactionManager transactionManager;
@@ -105,14 +105,7 @@ public class MainGraph {
         TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
         txTemplate.setReadOnly(true);
         txTemplate.execute(status -> {
-            jdbcTemplate.query(conn -> {
-                java.sql.PreparedStatement ps = conn.prepareStatement(
-                    "select id, source, target, cost, reverse_cost, length from pgrserver",
-                    java.sql.ResultSet.TYPE_FORWARD_ONLY,
-                    java.sql.ResultSet.CONCUR_READ_ONLY);
-                ps.setFetchSize(1000);
-                return ps;
-            }, rs -> {
+            graphLoadRepository.streamEdges(rs -> {
                 int source = rs.getInt("source");
                 int target = rs.getInt("target");
                 double cost = rs.getDouble("cost");
