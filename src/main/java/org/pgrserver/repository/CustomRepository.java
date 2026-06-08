@@ -91,12 +91,14 @@ public class CustomRepository {
         /**
          * using the much faster st_estimatedextent to get BND.
          */
-        String sql = "with tname as (select table_name from "
+        String sql = "with tname as (select table_schema, table_name from "
                 + "information_schema.view_table_usage where "
                 + "view_name = 'pgrserver' limit 1) "
-                + "select st_asgeojson(st_estimatedextent(t.table_name,"
+                + "select st_asgeojson(st_estimatedextent("
+                + "t.table_schema, t.table_name,"
                 + "(select f_geometry_column from geometry_columns where "
-                + "f_table_name = t.table_name))) from tname as t;";
+                + "f_table_name = t.table_name and "
+                + "f_table_schema = t.table_schema))) from tname as t;";
 
         return entityManager.createNativeQuery( sql )
                 .getSingleResult();
