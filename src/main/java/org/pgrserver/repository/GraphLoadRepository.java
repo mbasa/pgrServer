@@ -8,6 +8,7 @@
 package org.pgrserver.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
@@ -19,6 +20,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class GraphLoadRepository {
 
+    @Value("${pgrserver.view.name:pgrserver}")
+    private String viewName;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -26,7 +30,7 @@ public class GraphLoadRepository {
         jdbcTemplate.query(conn -> {
             java.sql.PreparedStatement ps = conn.prepareStatement(
                 "select id, source, target, cost, reverse_cost, length" +
-                " from pgrserver",
+                " from " + viewName,
                 java.sql.ResultSet.TYPE_FORWARD_ONLY,
                 java.sql.ResultSet.CONCUR_READ_ONLY);
             ps.setFetchSize(1000);

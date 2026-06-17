@@ -19,6 +19,7 @@ import org.pgrserver.entity.DynamicCost;
 import org.pgrserver.entity.PgrServer;
 import org.pgrserver.graph.LabeledWeightedEdge;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,11 +39,14 @@ public class CustomRepository {
     public CustomRepository() {
     }
 
+    @Value("${pgrserver.view.name:pgrserver}")
+    private String viewName;
+
     @Autowired
     private EntityManager entityManager;
 
     public PgrServer findNearestNode(double lng,double lat) {
-        String sql = "select id,source,target,cost,reverse_cost,length from pgrserver "
+        String sql = "select id,source,target,cost,reverse_cost,length from " + viewName + " "
                 + "order by geom <-> st_setsrid(st_point("
                 + lng 
                 + ","
@@ -86,22 +90,37 @@ public class CustomRepository {
     }
 
     public Object getGraphBnd() {
-        //String sql = "select st_asgeojson(st_extent(geom)) from pgrserver ;";
-
         /**
          * using the much faster st_estimatedextent to get BND.
          */
         String sql = "with tname as (select table_schema, table_name from "
-                + "information_schema.view_table_usage where "
-                + "view_name = 'pgrserver' limit 1) "
+                + "information_schema.tables where "
+                + "table_name = '" + viewName + "' limit 1) "
                 + "select st_asgeojson(st_estimatedextent("
                 + "t.table_schema, t.table_name,"
                 + "(select f_geometry_column from geometry_columns where "
                 + "f_table_name = t.table_name and "
                 + "f_table_schema = t.table_schema))) from tname as t;";
 
-        return entityManager.createNativeQuery( sql )
+        Object retVal = entityManager.createNativeQuery(sql)
                 .getSingleResult();
+
+        if (retVal == null) {
+            // ** checking if the table is a View **//
+            sql = "with tname as (select table_schema, table_name from "
+                    + "information_schema.view_table_usage where "
+                    + "view_name = '" + viewName + "' limit 1) "
+                    + "select st_asgeojson(st_estimatedextent("
+                    + "t.table_schema, t.table_name,"
+                    + "(select f_geometry_column from geometry_columns where "
+                    + "f_table_name = t.table_name and "
+                    + "f_table_schema = t.table_schema))) from tname as t;";
+
+            retVal = entityManager.createNativeQuery(sql)
+                    .getSingleResult();
+        }
+
+        return retVal;
     }
 
     public Object createJsonDriveDistPoly(Set<Integer> list) {
@@ -116,8 +135,8 @@ public class CustomRepository {
                 + ") as TEXT) as st_json "
                 + "from (select st_concavehull(st_collect("
                 + "st_startpoint(ST_GeometryN(geom,1))),0.8) as geom "
-                + "from pgrserver "
-                + "where source in " 
+                + "from " + viewName + " "
+                + "where source in "
                 + listStr
                 + ") t;";
 
@@ -154,7 +173,7 @@ public class CustomRepository {
                 + "'fid',"+gid+attrib+"),"
                 + "'geometry',CAST(st_asgeojson(t.geom) as json)"
                 + ") as TEXT) as st_json "
-                + "from (select st_linemerge(st_union(geom)) as geom from pgrserver"
+                + "from (select st_linemerge(st_union(geom)) as geom from " + viewName
                 + " where id in "
                 + listStr
                 + ") t;";
@@ -176,7 +195,7 @@ public class CustomRepository {
                 + "'fid',"+gid+"),"
                 + "'geometry',CAST(st_asgeojson(t.geom) as json)"
                 + ") as TEXT) as st_json "
-                + "from (select st_linemerge(st_union(geom)) as geom from pgrserver"
+                + "from (select st_linemerge(st_union(geom)) as geom from " + viewName
                 + " where id in "
                 + listStr
                 + ") t;";

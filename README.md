@@ -83,6 +83,7 @@ For convenience, a Docker image can be built for this project. There are a few e
 - `POSTGRES_DB`  : the database you. Default `pgr`.
 - `POSTGRES_USER`: the Postgres user name. Default `postgres`.
 - `POSTGRES_PASS`: the Postgres password. Default `postgres`.
+- `PGRSERVER_VIEW_NAME`: the name of the PostgreSQL view or table that pgrServer reads the topology from. Default `pgrserver`.
 
 **Note**, it is still necessary to [prepare the topology](#preparing-the-topology) with pgRouting or [osm2po](https://osm2po.de). Also, the docker usage is advisable for testing or development purposes only. **It is highly advisable not to run a production server with the Docker image.**
 
@@ -108,12 +109,20 @@ Preparing the Topology
 * Ensure that there is an index on an __unique id__ field, an index on the __source__ field, an index on the __target__ field, and a spatial index on the __geometry__ field of the topology table.
 
 
-* Create a View or Table __pgrserver__ based on the topology table that will contain the following fields:
+* Create a View or Table based on the topology table that will contain the following fields:
 `id`, `source`, `target`, `cost`, `reverse_cost`, `length`, `geom`.
 
 ```sql
 CREATE VIEW pgrserver AS SELECT id,node_from AS source,node_to AS target,cost, reverse_cost, length, wkb_geometry AS geom FROM kanto ;
 ```
+
+  The name of this view or table defaults to `pgrserver` and can be changed via the `pgrserver.view.name` property in `application.properties`, as a command-line argument, or as an environment variable:
+
+  | Method | Example |
+  |---|---|
+  | `application.properties` | `pgrserver.view.name=my_network` |
+  | Command line | `java -jar pgrServer.war --pgrserver.view.name=my_network` |
+  | Environment variable | `PGRSERVER_VIEW_NAME=my_network` |
 
 **Note:**
 
