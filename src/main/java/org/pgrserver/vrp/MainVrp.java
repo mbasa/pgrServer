@@ -189,7 +189,7 @@ public class MainVrp {
                     int source = pgrServer.get(i).getSource();
                     int target = pgrServer.get(i+1).getTarget();
                     
-                    pathList.add( mainGraph.dijkstraSearch(source, target) );                    
+                    pathList.add( mainGraph.dijkstraSearch(source, target,null) );                    
                 }
                 
                 retVal.append(custRepository.createJsonCollectionResponse(

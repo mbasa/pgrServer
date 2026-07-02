@@ -20,6 +20,7 @@ public class LabeledWeightedEdge extends DefaultWeightedEdge {
      */
     private static final long serialVersionUID = 1L;
     private int edgeId;
+    private double length;
     
     /**
      * コンストラクタ
@@ -40,6 +41,14 @@ public class LabeledWeightedEdge extends DefaultWeightedEdge {
      */
     public void setEdgeId(int edgeId) {
         this.edgeId = edgeId;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
     }
 
 }
